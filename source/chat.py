@@ -3,6 +3,7 @@ import openai
 from typing import Dict, List
 
 openai.api_key = os.getenv("OPENAI_API_KEY")
+assert openai.api_key, 'No openai key'
 
 def get_assistant_message(
   messages: List[Dict[str, str]],
@@ -63,11 +64,12 @@ def create_prompt(user_req, attrs='', genres=''):
   _set_role_text(msgs, query=prompt, role='system')
 
   query = 'Make me a playlist of ambient electronic music with some latin flare and sprinkle in some country with a little energy and not very loud but with pop. Similar to Daft Punk or Jon Hopkins or drone logic by Daniel Avery.'
+  # TODO(jsamost) make few shot for songs better
   _set_role_text(msgs, query=query, role='user')
   output = '''
   genres: ambient, electronic, latin, country
   artists: Daft Punk, Jon Hopkins, Daniel Avery
-  songs: drone logic
+  songs: "drone logic" by daniel avery
   acousticness: 25
   danceability: 75
   energy: 80

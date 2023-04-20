@@ -16,7 +16,7 @@ class Conversations():
     self.messages = [{'direction': FROM, 'body': body}]
 
   def add_message(self, body: str, from_to: str) -> None:
-    self.messages.append([{direction: from_to, 'body': body}])
+    self.messages.append({'direction': from_to, 'body': body})
 
 
 def ConversationForNumber(number):
@@ -33,11 +33,13 @@ def incoming_sms():
   user_request = 'make me a playlist with ambient audio. music that will help me focus. super instrumental. study music but upbeat. high bpm. Similar to The Chemical Brothers or Justice or Fred again..'
   
   body = request.values.get('Body', None)
-  number_id = request.values.get('from', None)
+  number_id = request.values.get('From', None)
+  if not body or not number_id:
+    return ''
   global convo_list
   convo = ConversationForNumber(number_id)
   if convo:
-    convo.messages.append(body=body, from_to=FROM)
+    convo.add_message(body=body, from_to=FROM)
   else:
     convo_list.append(Conversations(number_id, body))
 
@@ -45,7 +47,7 @@ def incoming_sms():
   resp = MessagingResponse()
 
   # Determine the right reply for this message
-  if body.startswith('create:'):
+  if body.lower().startswith('create:'):
     query = body[len('create:'):]
     err, url = playlist_for_query(query)
     if err == 0:
@@ -53,6 +55,7 @@ def incoming_sms():
     else:
       resp.message(f'hrm thats an error on our end... try again?')
   else:
+    print(f'received message: {body} from {number_id}')
     user_request = 'make me a playlist with ambient audio. music that will help me focus. super instrumental. study music but upbeat. high bpm. Similar to The Chemical Brothers or Justice'
     rm = (
       "\n\nI didn't understand your message, if you wanna make a playlist start your message with "

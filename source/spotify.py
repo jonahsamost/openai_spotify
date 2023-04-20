@@ -237,7 +237,7 @@ def chatOutputToStructured(txt, attributes=[]):
     try:
       att, vals = val.split(':')
     except:
-      return None, None
+      continue
     if att.find('genres') != -1:
       genres = vals
     elif att.find('artists') != -1:
