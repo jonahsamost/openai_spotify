@@ -147,7 +147,7 @@ class SpotifyRequest(object):
       return artist_ids if artist_ids else None
       return None
 
-    def get_recommendations(self, limit=50, seed_artists=None, seed_tracks=None, seed_genres=None, attributes={}):
+    def get_recommendations(self, limit=50, seed_artists=[], seed_tracks=[], seed_genres=[], attributes={}):
       attrs = self.get_attributes()
       params = {}
       cnt = 0
@@ -174,21 +174,24 @@ class SpotifyRequest(object):
       return self._call('GET', "recommendations", **params)
 
     def find_playlist_with_name(self, pname):
+      pname = bytes(pname, 'utf-8')
       pitems = self.current_user_playlists()
       for i in pitems['items']:
         name =  i['name'].encode('ascii', 'ignore')
         if name == pname:
-          return i['id']
+          return i
       return None
 
-    ''' get playlist id for given name, make new one if name doesnt exist'''
-    def get_playlist_id(self, pname='deejay'):
-      playlist_id = self.find_playlist_with_name(pname)
+    def get_playlist_info(self, pname='deejay'):
+    ''' get playlist id, url for given name, make new one if name doesnt exist'''
+      playlist_info = self.find_playlist_with_name(pname)
+      playlist_id = playlist_info['id']
+      playlist_url = playlist_info['external_urls']['spotify']
       if playlist_id:
-        return playlist_id
+        return playlist_id, playlist_url
       result = self.user_playlist_create(pname)
       assert result, 'No playlist created'
-      return result['id']
+      return result['id'], result['external_urls']['spotify']
 
     def playlist_write_tracks(self, playlist_id, track_uris):
       return self._call('POST', f'playlists/{playlist_id}/tracks', payload=json.dumps(track_uris), position=0)

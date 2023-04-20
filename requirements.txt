@@ -1,4 +1,3 @@
 openai
-pyaudio
-SpeechRecognition
 spotipy
+twilio
