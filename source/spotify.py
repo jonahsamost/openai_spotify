@@ -3,6 +3,7 @@ import spotipy
 import json
 import time
 
+
 spotify_creds = {
   'name':'d',
   'id':'44d51995a3694b4c94c6e720584e0552',
@@ -134,37 +135,52 @@ class SpotifyRequest(object):
         "energy", "instrumentalness", "liveness", "loudness",
         "popularity", "speechiness"]
 
-    def artistIdForName(self, artist_names):
-      # TODO 
-
-      artist_ids = []
-      for artist in artist_names:
-        result = self._call('GET', 'search', q=f'artist:{artist}' , type='artist', limit = 50 , offset = 0)
-        for a in result['artists']['items']:
-          if a['name'].lower() == artist.lower():
-            artist_ids.append(a['id'])
+    def IdsForSeachTerms(self, search_terms, search_type: str):
+      ids = []
+      if search_type == 'artist':
+        results = 'artists'
+      elif search_type == 'track':
+        results = 'tracks'
+      for term in search_terms:
+        found = False
+        for i in range(2):
+          result = self._call('GET', 'search', q=f'{search_type}:{term}' , type=search_type, limit=50 , offset=i)
+          for a in result[results]['items']:
+            if a['name'].lower() == term.lower():
+              ids.append(a['id'])
+              found = True
+              break
+          if found:
             break
-      return artist_ids if artist_ids else None
-      return None
+      return ids if ids else None
 
     def get_recommendations(self, limit=50, seed_artists=[], seed_tracks=[], seed_genres=[], attributes={}):
       attrs = self.get_attributes()
       params = {}
       cnt = 0
-
-      if seed_artists: # list of artist_ids
-        params['seed_artists'] = ','.join(seed_artists[:5-cnt])
-        cnt += len(seed_artists)
-      if seed_tracks:
-        params['seed_tracks'] = ','.join(seed_tracks)
-      if seed_genres:
-        params['seed_genres'] = ','.join(seed_genres[:5-cnt])
+      
+      # can only seed at most 5
+      if seed_artists:
+        included_artists = seed_artists[:5-cnt]
+        params['seed_artists'] = ','.join(included_artists)
+        cnt += len(included_artists)
+      if seed_genres and cnt <= 5:
+        included_genres = seed_genres[:5-cnt]
+        params['seed_genres'] = ','.join(included_genres)
+        cnt += len(included_genres)
+      if seed_tracks and cnt <= 5:
+        included_tracks = seed_tracks[:5-cnt]
+        params['seed_tracks'] = ','.join(included_tracks)
       for a, v in attributes.items():
         if a in attrs:
           if a == 'popularity':
             val = int(v)
             if val < 0: val = 0
             if val > 100: val = 100
+          elif a == 'tempo':
+            val = int(v)
+            if val < 60: val = 60
+            if val > 190: val = 190
           else:
             val = int(v) / 100
             if val < 0: val = 0
@@ -173,29 +189,36 @@ class SpotifyRequest(object):
       params['limit'] = limit
       return self._call('GET', "recommendations", **params)
 
-    def find_playlist_with_name(self, pname):
+    def find_playlist_with_name(self, pname) -> dict:
       pname = bytes(pname, 'utf-8')
       pitems = self.current_user_playlists()
       for i in pitems['items']:
         name =  i['name'].encode('ascii', 'ignore')
         if name == pname:
           return i
-      return None
+      return {}
 
-    def get_playlist_info(self, pname='deejay'):
-    ''' get playlist id, url for given name, make new one if name doesnt exist'''
-      playlist_info = self.find_playlist_with_name(pname)
-      playlist_id = playlist_info['id']
-      playlist_url = playlist_info['external_urls']['spotify']
-      if playlist_id:
-        return playlist_id, playlist_url
-      result = self.user_playlist_create(pname)
-      assert result, 'No playlist created'
+    def get_playlist_info(self, pname: str):
+      '''get playlist id, url for given name, make new one if name doesnt exist.'''
+
+      i = 1
+      cur_pname = pname
+      while True:
+        playlist_info = self.find_playlist_with_name(cur_pname)
+        if playlist_info.get('id', None):
+          cur_pname = pname + '_' + str(i)
+          i += 1
+          continue
+        break
+
+      result = self.user_playlist_create(cur_pname)
+      if result is None:
+        return None, None
+
       return result['id'], result['external_urls']['spotify']
 
     def playlist_write_tracks(self, playlist_id, track_uris):
       return self._call('POST', f'playlists/{playlist_id}/tracks', payload=json.dumps(track_uris), position=0)
-      # spot._call('POST', f'playlists/{playlist_id}/tracks', payload=track_ids, position=0)
 
     def tracksForRecs(self, recs):
       return [track['uri'] for track in recs['tracks']]
@@ -203,8 +226,11 @@ class SpotifyRequest(object):
 
 def chatOutputToStructured(txt, attributes=[]):
   attrs = {}
-  genres = ''
+  genres = []
+  artists = []
+  songs = []
 
+  attributes = attributes + ['tempo']
   for val in txt.split('\n'):
     if not val:
       continue
@@ -216,6 +242,8 @@ def chatOutputToStructured(txt, attributes=[]):
       genres = vals
     elif att.find('artists') != -1:
       artists = vals
+    elif att.find('songs') != -1:
+      songs = vals
     elif att.strip() in attributes:
       attrs[att.strip()] = vals.strip()
 
@@ -225,4 +253,7 @@ def chatOutputToStructured(txt, attributes=[]):
   if artists:
     artists = [g.strip() for g in artists.split(',')] 
 
-  return genres, artists, attrs
+  if songs:
+    songs = [g.strip() for g in songs.split(',')] 
+
+  return genres, artists, songs, attrs

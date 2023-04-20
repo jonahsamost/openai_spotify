@@ -1,36 +1,57 @@
 from flask import Flask, request, redirect
 from twilio.twiml.messaging_response import MessagingResponse
+from logic import playlist_for_query 
 
 app = Flask(__name__)
 host='0.0.0.0'
-port=80
+port=8080
 
 FROM='from'
 TO='to'
 
+convo_list = []
 class Conversations():
-  def __init__(self, name: str, body: str):
-    self.name = name
+  def __init__(self, number: str, body: str):
+    self.number = number
     self.messages = [{'direction': FROM, 'body': body}]
 
   def add_message(self, body: str, from_to: str) -> None:
     self.messages.append([{direction: from_to, 'body': body}])
 
-convo_list = []
+
+def ConversationForNumber(number):
+  global convo_list
+  for c in convo_list:
+    if c.number == number:
+      return c
+  return None
 
 @app.route("/sms", methods=['GET', 'POST'])
 def incoming_sms():
   """Send a dynamic reply to an incoming text message"""
   # Get the message the user sent our Twilio number
+  user_request = 'make me a playlist with ambient audio. music that will help me focus. super instrumental. study music but upbeat. high bpm. Similar to The Chemical Brothers or Justice or Fred again..'
+  
   body = request.values.get('Body', None)
   number_id = request.values.get('from', None)
+  global convo_list
+  convo = ConversationForNumber(number_id)
+  if convo:
+    convo.messages.append(body=body, from_to=FROM)
+  else:
+    convo_list.append(Conversations(number_id, body))
 
   # Start our TwiML response
   resp = MessagingResponse()
 
   # Determine the right reply for this message
-  if body.startswith('create:')
-    resp.message("Hi!")
+  if body.startswith('create:'):
+    query = body[len('create:'):]
+    err, url = playlist_for_query(query)
+    if err == 0:
+      resp.message(f'\n\nCreated! Check the url!!\n\n{url}')
+    else:
+      resp.message(f'hrm thats an error on our end... try again?')
   else:
     user_request = 'make me a playlist with ambient audio. music that will help me focus. super instrumental. study music but upbeat. high bpm. Similar to The Chemical Brothers or Justice'
     rm = (
@@ -43,4 +64,4 @@ def incoming_sms():
   return str(resp)
 
 if __name__ == "__main__":
-    app.run(debug=True, host=host, port=port)
+    app.run(host=host, port=port)
