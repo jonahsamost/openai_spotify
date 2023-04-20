@@ -4,12 +4,6 @@ from spotify import SpotifyRequest, chatOutputToStructured
 import argparse
 import sys
 
-# TWILIO_SID = 'SKb501a041f10f49cc28ac99f7063d828e'
-TWILIO_SID = 'AC3a1567d7283831d56dabce93bb51dd49'
-TWILIO_SECRET = 'mrDHRx4s0l8b5d5R8TvxPW5f7qolV0Yc'
-TWILIO_AUTH_TOKEN = '34ef87ad86224742cf0e32f97d24e3b2'
-TWILIO_PHONE_NUMBER='+16099084970'
-
 def main():
   spot = SpotifyRequest()
   spot.reinit()
