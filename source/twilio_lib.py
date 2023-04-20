@@ -55,11 +55,11 @@ def incoming_sms():
   else:
     user_request = 'make me a playlist with ambient audio. music that will help me focus. super instrumental. study music but upbeat. high bpm. Similar to The Chemical Brothers or Justice'
     rm = (
-      "I didn't understand your message, if you wanna make a playlist start your message with "
-      "\"create:\" then write whatever youre feeling, including genres, artists or song names. "
-      f"For example, \"create: {user_request}\""
+      "\n\nI didn't understand your message, if you wanna make a playlist start your message with "
+      "\"create:\" then write whatever youre feeling, including genres, artists or song names. \n\n"
+      f"For example:\n\"create: {user_request}\""
     )
-    resp.message("\"create:\" then")
+    resp.message(rm)
 
   return str(resp)
 
