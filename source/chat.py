@@ -1,6 +1,7 @@
 import os
 import openai
 from typing import Dict, List
+import time
 
 openai.api_key = os.getenv("OPENAI_API_KEY")
 assert openai.api_key, 'No openai key'
@@ -9,12 +10,17 @@ def get_assistant_message(
   messages: List[Dict[str, str]],
   temperature: int = 0,
   model: str = "gpt-3.5-turbo") -> str:
-  res = openai.ChatCompletion.create(
-    model=model,
-    temperature=temperature,
-    messages=messages
-  )
-  return res['choices'][0]['message']['content']
+  for i in range(3):
+    try:
+      res = openai.ChatCompletion.create(
+        model=model,
+        temperature=temperature,
+        messages=messages
+      )
+      return res['choices'][0]['message']['content']
+    except Exception as e:
+      print('Open AI Exception: ', e)
+      time.sleep(2)
 
 
 def _set_role_text(msgs: list = [], query: str = '', role: str = 'user'):
@@ -63,13 +69,13 @@ def create_prompt(user_req, attrs='', genres=''):
   msgs = []
   _set_role_text(msgs, query=prompt, role='system')
 
-  query = 'Make me a playlist of ambient electronic music with some latin flare and sprinkle in some country with a little energy and not very loud but with pop. Similar to Daft Punk or Jon Hopkins or drone logic by Daniel Avery.'
+  query = 'Make me a playlist of ambient electronic music with some latin flare and sprinkle in some country with a little energy and not very loud but with pop. Similar to Daft Punk or Jon Hopkins or drone logic by Daniel Avery or body by loud luxury'
   # TODO(jsamost) make few shot for songs better
   _set_role_text(msgs, query=query, role='user')
   output = '''
   genres: ambient, electronic, latin, country
-  artists: Daft Punk, Jon Hopkins, Daniel Avery
-  songs: "drone logic" by daniel avery
+  artists: Daft Punk, Jon Hopkins, Daniel Avery, Loud Luxury
+  songs: "drone logic" by daniel avery, "body" by loud luxury
   acousticness: 25
   danceability: 75
   energy: 80
@@ -82,11 +88,12 @@ def create_prompt(user_req, attrs='', genres=''):
   '''
   _set_role_text(msgs, query=output, role='assistant')
 
-  query = 'Playlist with electronic with heavy synth. not lyrical. not popular. high energy. Like Deadmau5'
+  query = "Playlist with electronic with heavy synth. not lyrical. not popular. high energy. Like Deadmau5's the veldt"
   _set_role_text(msgs, query=query, role='user')
   output = '''
   genres: electronic, synth-pop, deep-house
   artists: Deadmau5
+  songs: "the veldt" by Deadmau5
   acousticness: 10
   danceability: 75
   energy: 80

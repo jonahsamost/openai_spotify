@@ -1,10 +1,10 @@
 from flask import Flask, request, redirect
 from twilio.twiml.messaging_response import MessagingResponse
-from logic import playlist_for_query 
+from logic import playlist_for_query, ERROR_CODES
 
 app = Flask(__name__)
 host='0.0.0.0'
-port=8080
+port=80
 
 FROM='from'
 TO='to'
@@ -47,24 +47,36 @@ def incoming_sms():
   resp = MessagingResponse()
 
   # Determine the right reply for this message
+  print(f'received message: {body} from {number_id}')
   if body.lower().startswith('create:'):
     query = body[len('create:'):]
-    err, url = playlist_for_query(query)
-    if err == 0:
+    try:
+      err, url = playlist_for_query(query)
+    except Exception as e:
+      print('Unhandled exception: ', e)
+      err = -1
+    if err == ERROR_CODES.NO_ERROR:
       resp.message(f'\n\nCreated! Check the url!!\n\n{url}')
+    elif err == ERROR_CODES.ERROR_OPENAI_SEX:
+      resp.message(f'seems your query may have been a bit too risque :( .). try again?')
     else:
       resp.message(f'hrm thats an error on our end... try again?')
   else:
-    print(f'received message: {body} from {number_id}')
     user_request = 'make me a playlist with ambient audio. music that will help me focus. super instrumental. study music but upbeat. high bpm. Similar to The Chemical Brothers or Justice'
     rm = (
-      "\n\nI didn't understand your message, if you wanna make a playlist start your message with "
-      "\"create:\" then write whatever youre feeling, including genres, artists or song names. \n\n"
-      f"For example:\n\"create: {user_request}\""
+      "\n\nWelcome to ThumbTings!!"
+      "\n\nif you wanna make a playlist start your message with "
+      "\"create:\" then write whatever youre feeling, including genres, artists or song names."
+      f"\n\nFor example:\n\"create: {user_request}\""
     )
     resp.message(rm)
 
   return str(resp)
+
+
+@app.route("/", methods=['GET'])
+def blah():
+  return 'LOSING ALL MY INNOCENCE'
 
 if __name__ == "__main__":
     app.run(host=host, port=port)

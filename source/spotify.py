@@ -1,6 +1,7 @@
+import json
+import re
 import requests
 import spotipy
-import json
 import time
 
 
@@ -135,23 +136,52 @@ class SpotifyRequest(object):
         "energy", "instrumentalness", "liveness", "loudness",
         "popularity", "speechiness"]
 
-    def IdsForSeachTerms(self, search_terms, search_type: str):
+    def _search_tracks(self, artist, track):
+      """try to return track id for artist, track pair."""
+      soft_ids = []
+      for i in range(2):
+        result = self._call('GET', 'search', q=f'artist:{artist} track:{track}' , type='track', limit=50 , offset=i)
+        for item in result['tracks']['items']:
+          r_name = item['name'].lower()
+          r_artists = [arts['name'].lower() for arts in item['artists']]
+          if r_name == track.lower() and artist in r_artists:
+            return item['id']
+          elif r_name.find(track.lower()) != -1:
+            if artist in r_artists:
+              soft_ids.append(item['id'])
+            elif any([r_art.lower().find(artist.lower()) != -1 for r_art in r_artists]):
+              soft_ids.append(item['id'])
+      return soft_ids[0] if soft_ids else None
+
+    def IdsForSongs(self, search_terms: dict):
+      """Finds artist ids for a given list of artists."""
       ids = []
-      if search_type == 'artist':
-        results = 'artists'
-      elif search_type == 'track':
-        results = 'tracks'
-      for term in search_terms:
-        found = False
-        for i in range(2):
-          result = self._call('GET', 'search', q=f'{search_type}:{term}' , type=search_type, limit=50 , offset=i)
-          for a in result[results]['items']:
-            if a['name'].lower() == term.lower():
-              ids.append(a['id'])
-              found = True
-              break
-          if found:
-            break
+      for track, artist in search_terms.items():
+        track_id = self._search_tracks(artist, track)
+        if track_id:
+          ids.append(track_id)
+      return ids if ids else None
+
+    def _search_artists(self, artist):
+      """Try to search for single artist."""
+      soft_ids = []  # does search term appear in result?
+      for i in range(2):
+        result = self._call('GET', 'search', q=f'artist:{artist}' , type='artist', limit=50 , offset=i)
+        for item in result['artists']['items']:
+          name = item['name'].lower()
+          if name == artist.lower():
+            return item['id']
+          if name.find(artist.lower()) != -1:
+            soft_ids.append(item['id'])
+      return soft_ids[0] if soft_ids else None
+
+    def IdsForArtists(self, search_terms: list):
+      """Finds artist ids for a given list of artists."""
+      ids = []
+      for term in list(set(search_terms)):
+        artist = self._search_artists(term)
+        if artist:
+          ids.append(artist)
       return ids if ids else None
 
     def get_recommendations(self, limit=50, seed_artists=[], seed_tracks=[], seed_genres=[], attributes={}):
@@ -178,9 +208,13 @@ class SpotifyRequest(object):
             if val < 0: val = 0
             if val > 100: val = 100
           elif a == 'tempo':
-            val = int(v)
-            if val < 60: val = 60
-            if val > 190: val = 190
+            rem = re.match('[0-9]*', v)
+            if rem:
+              val = int(rem.group())
+              if val < 50: val = 50
+              if val > 200: val = 200
+            else:
+              continue
           else:
             val = int(v) / 100
             if val < 0: val = 0
@@ -248,12 +282,25 @@ def chatOutputToStructured(txt, attributes=[]):
       attrs[att.strip()] = vals.strip()
 
   if genres:
+    print('found genres: ', genres)
     genres = [g.strip() for g in genres.split(',')] 
   
   if artists:
+    print('found artists: ', artists)
     artists = [g.strip() for g in artists.split(',')] 
 
+  song_artist_dic = {}
   if songs:
-    songs = [g.strip() for g in songs.split(',')] 
+    print('found songs: ', songs)
+    for sa in songs.split(','):
+      s_by_a = sa.split('by')
+      if len(s_by_a) != 2:
+        continue
+      cur_song = s_by_a[0].replace('"', '').strip()
+      cur_artist = s_by_a[1].strip()
+      song_artist_dic[cur_song] = cur_artist
+    print('filtered songs: ', song_artist_dic)
+  songs = song_artist_dic
+
 
   return genres, artists, songs, attrs
