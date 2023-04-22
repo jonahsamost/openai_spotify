@@ -1,4 +1,5 @@
 openai
+cohere
 spotipy
 twilio
 Flask
