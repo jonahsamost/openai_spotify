@@ -1,7 +1,9 @@
 import os
 import openai
-from typing import Dict, List
+import re
+from typing import Dict, List, Union
 import time
+from loglib import logger
 
 openai.api_key = os.getenv("OPENAI_API_KEY")
 assert openai.api_key, 'No openai key'
@@ -19,7 +21,7 @@ def get_assistant_message(
       )
       return res['choices'][0]['message']['content']
     except Exception as e:
-      print('Open AI Exception: ', e)
+      logger.info('Open AI Exception: %s', e)
       time.sleep(2)
 
 
@@ -29,27 +31,46 @@ def _set_role_text(msgs: list = [], query: str = '', role: str = 'user'):
 
 
 def pprint_msgs(msgs):
-  print('Pretty print msgs')
+  logger.info('Pretty print msgs')
   for msg in msgs:
     content = msg['content']
     role = msg['role']
-    print('role: ', role)
+    logger.info(f'role: {role}')
     for m in content.split('\n'):
-      print(m)
+      logger.info(f'{m}')
 
-def create_playlist_name_from_query(user_req):
+
+def parse_playlist_name(llm_output: str) -> Union[list, None]:
+  '''Parses llm output for playlist name.'''
+  return re.findall('"(.*?)"', llm_output)
+
+
+def create_playlist_name_from_query(user_req, with_retry=False):
   msgs = []
 
-  prompt = 'You create unique 5 word playlists from a user query.'
+  prompt = 'You create 10 unique, interesting and fun 5 word playlists from a user query with one on each line of output. The playlist name is between double quotes. Be creative.'
   _set_role_text(msgs, query=prompt, role='system')
 
+  prompt = ('"Latin Rhythms in Electronic Spaces"\n'
+  '"Electronic Enchantment with a Country Twist""\n'
+  '"Ambient Pop with Latin Grooves"\n'
+  '"Electronic Rancheras under Starry Skies"\n'
+  '"Chill Country with Electro Beats"')
   query = 'Make me a playlist of ambient electronic music with some latin flare and sprinkle in some country with a little energy and not very loud but with pop. Similar to Daft Punk or Jon Hopkins or drone logic by Daniel Avery.'
   _set_role_text(msgs, query=query, role='user')
-  _set_role_text(msgs, query='Ethereal Latin Ambience Subtle Chillout', role='assistant')
+  _set_role_text(msgs, query=prompt, role='assistant')
 
+  prompt = ('"Synthwave Power Hour"\n'
+  '"Energetic Electronica Workout Mix"\n'
+  '"High-Octane Synth Attack"\n'
+  '"Futuristic Synth Pump-Up Playlist"\n'
+  '"Synth-Heavy Gym Motivation Mix"')
   query = 'Playlist with electronic with heavy synth. not lyrical. not popular. high energy. Like Deadmau5'
   _set_role_text(msgs, query=query, role='user')
-  _set_role_text(msgs, query='Synth heavy Electronic powerhouse blast', role='assistant')
+  _set_role_text(msgs, query=prompt, role='assistant')
+
+  if with_retry:
+    user_req = 'The names you just returned were not creative enough. Try again:\n' + user_req
 
   _set_role_text(msgs, query=user_req, role='user')
   return msgs
@@ -70,7 +91,6 @@ def create_prompt(user_req, attrs='', genres=''):
   _set_role_text(msgs, query=prompt, role='system')
 
   query = 'Make me a playlist of ambient electronic music with some latin flare and sprinkle in some country with a little energy and not very loud but with pop. Similar to Daft Punk or Jon Hopkins or drone logic by Daniel Avery or body by loud luxury'
-  # TODO(jsamost) make few shot for songs better
   _set_role_text(msgs, query=query, role='user')
   output = '''
   genres: ambient, electronic, latin, country

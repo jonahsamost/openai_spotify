@@ -3,21 +3,24 @@ import re
 import requests
 import spotipy
 import time
+from loglib import logger
 
 
-spotify_creds = {
-  'name':'d',
-  'id':'44d51995a3694b4c94c6e720584e0552',
-  'secret':'329ee2f428124bca93b554a07b53d3f7',
+spotify_creds={
+  'name':'Glorface',
+  'username':'315y4n5753fuii5mrqmakntqpi4e',
+  'id':'de4aa6a8863442799f4cf1348677f82d',
+  'secret':'7c906509f969452ca22ed14ce80cb5fe',
+  'redirect':'https://jasvandy.github.io/'
 }
 
 class SpotifyRequest(object):
-    def __init__(self, username='jsamost'):
+    def __init__(self):
         super(SpotifyRequest, self).__init__()
         self._token = None
         self._base = 'https://api.spotify.com/v1/'
         self._session = requests.Session()
-        self._username = username
+        self._username = None
         self._soa = None
 
         self._loc = 0
@@ -27,7 +30,8 @@ class SpotifyRequest(object):
         self._client_id = spotify_creds['id']
         self._secret = spotify_creds['secret']
         self._fname = spotify_creds['name']
-        self._redirect = 'https://jasvandy.github.io/'
+        self._redirect = spotify_creds['redirect']
+        self._username = spotify_creds['username']
 
         self._soa = spotipy.oauth2.SpotifyOAuth(client_id=self._client_id, 
             client_secret=self._secret, redirect_uri=self._redirect, 
@@ -44,15 +48,15 @@ class SpotifyRequest(object):
 
     @property
     def scope(self):
-        scope = [
-            'user-read-private',
+        scope=[
+            'playlist-read-private',
+            'playlist-read-collaborative',
+            'playlist-modify-private',
+            'playlist-modify-public',
             'user-follow-read',
-            'user-library-read',
             'user-top-read',
             'user-read-recently-played',
-            'playlist-modify-private',
-            'playlist-read-private',
-            'playlist-modify-public'
+            'user-library-read',
         ]
         return ' '.join(scope)
 
@@ -81,10 +85,10 @@ class SpotifyRequest(object):
       while 1:
         try:
           self._soa.refresh_access_token(tokes['refresh_token'])
-          print('Refreshing token!')
+          logger.info('Refreshing token!')
           break
         except Exception as e:
-          print('Reiniting token!')
+          logger.info('Reiniting token!')
           tokes = __tokes_init()
 
       tokes = self._soa.get_cached_token()
@@ -103,7 +107,7 @@ class SpotifyRequest(object):
           elif method == "POST":
             response = self._session.request(method, url, headers=headers, data=payload)
         except Exception as e:
-          print('Caught exception: ', e)
+          logger.info('Caught exception: %s', e)
           self._session = requests.Session()
           time.sleep(10)
           continue 
@@ -114,7 +118,7 @@ class SpotifyRequest(object):
           sleep_time = response.headers['Retry-After']
           self.reinit()
         else:
-          print(f"Error: {response.status_code}, {response.text}")
+          logger.info(f"Error: {response.status_code}, {response.text}")
           return None
 
     def current_user(self):
@@ -232,23 +236,14 @@ class SpotifyRequest(object):
           return i
       return {}
 
+    def does_playlist_exist(self, pname: str):
+      playlist_info = self.find_playlist_with_name(pname)
+      return playlist_info.get('id', None)
+
     def get_playlist_info(self, pname: str):
-      '''get playlist id, url for given name, make new one if name doesnt exist.'''
-
-      i = 1
-      cur_pname = pname
-      while True:
-        playlist_info = self.find_playlist_with_name(cur_pname)
-        if playlist_info.get('id', None):
-          cur_pname = pname + '_' + str(i)
-          i += 1
-          continue
-        break
-
-      result = self.user_playlist_create(cur_pname)
+      result = self.user_playlist_create(pname)
       if result is None:
         return None, None
-
       return result['id'], result['external_urls']['spotify']
 
     def playlist_write_tracks(self, playlist_id, track_uris):
@@ -256,6 +251,7 @@ class SpotifyRequest(object):
 
     def tracksForRecs(self, recs):
       return [track['uri'] for track in recs['tracks']]
+
 
 
 def chatOutputToStructured(txt, attributes=[]):
@@ -282,16 +278,16 @@ def chatOutputToStructured(txt, attributes=[]):
       attrs[att.strip()] = vals.strip()
 
   if genres:
-    print('found genres: ', genres)
+    logger.info('found genres: %s', genres)
     genres = [g.strip() for g in genres.split(',')] 
   
   if artists:
-    print('found artists: ', artists)
+    logger.info('found artists: %s', artists)
     artists = [g.strip() for g in artists.split(',')] 
 
   song_artist_dic = {}
   if songs:
-    print('found songs: ', songs)
+    logger.info('found songs: %s', songs)
     for sa in songs.split(','):
       s_by_a = sa.split('by')
       if len(s_by_a) != 2:
@@ -299,7 +295,7 @@ def chatOutputToStructured(txt, attributes=[]):
       cur_song = s_by_a[0].replace('"', '').strip()
       cur_artist = s_by_a[1].strip()
       song_artist_dic[cur_song] = cur_artist
-    print('filtered songs: ', song_artist_dic)
+    logger.info('filtered songs: %s', song_artist_dic)
   songs = song_artist_dic
 
 

@@ -1,9 +1,11 @@
 from flask import Flask, request, redirect
 from twilio.twiml.messaging_response import MessagingResponse
 from logic import playlist_for_query, ERROR_CODES
+from loglib import logger
 
 app = Flask(__name__)
 host='0.0.0.0'
+host='127.0.0.1'
 port=80
 
 FROM='from'
@@ -26,6 +28,11 @@ def ConversationForNumber(number):
       return c
   return None
 
+def _playlist_for_query(query):
+  err, url = playlist_for_query(query)
+  logger.info('Error: %s', err)
+  logger.info('Url: %s', url)
+
 @app.route("/sms", methods=['GET', 'POST'])
 def incoming_sms():
   """Send a dynamic reply to an incoming text message"""
@@ -47,13 +54,13 @@ def incoming_sms():
   resp = MessagingResponse()
 
   # Determine the right reply for this message
-  print(f'received message: {body} from {number_id}')
+  logger.info(f'received message: {body} from {number_id}')
   if body.lower().startswith('create:'):
     query = body[len('create:'):]
     try:
-      err, url = playlist_for_query(query)
+      err, url = _playlist_for_query(query)
     except Exception as e:
-      print('Unhandled exception: ', e)
+      logger.info('Unhandled exception: %s', e)
       err = -1
     if err == ERROR_CODES.NO_ERROR:
       resp.message(f'\n\nCreated! Check the url!!\n\n{url}')
