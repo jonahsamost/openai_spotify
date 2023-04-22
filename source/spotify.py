@@ -216,7 +216,7 @@ class SpotifyRequest(object):
             if rem:
               val = int(rem.group())
               if val < 50: val = 50
-              if val > 200: val = 200
+              if val > 260: val = 260
             else:
               continue
           else:
@@ -268,13 +268,13 @@ def chatOutputToStructured(txt, attributes=[]):
       att, vals = val.split(':')
     except:
       continue
-    if att.find('genres') != -1:
+    if att.find('genres') != -1 and not genres:
       genres = vals
-    elif att.find('artists') != -1:
+    elif att.find('artists') != -1 and not artists:
       artists = vals
-    elif att.find('songs') != -1:
+    elif att.find('songs') != -1 and not songs:
       songs = vals
-    elif att.strip() in attributes:
+    elif att.strip() in attributes and not attrs:
       attrs[att.strip()] = vals.strip()
 
   if genres:

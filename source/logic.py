@@ -1,9 +1,11 @@
-import chat
-import spotify
-import argparse
-import sys
-from loglib import logger
 from enum import Enum
+from loglib import logger
+import argparse
+import chat
+import cohere_lib
+import os
+import spotify
+import sys
 
 class ERROR_CODES(Enum):
   NO_ERROR=0
@@ -11,7 +13,8 @@ class ERROR_CODES(Enum):
   ERROR_CHAT_GPT=2
   ERROR_NO_SPOTIFY_RECS=3
   ERROR_NO_PLAYLIST_CREATE=4
-  ERROR_OPENAI_SEX=5
+  ERROR_NO_GEN=5
+  ERROR_COHERE_GEN=6
 
 def playlist_for_query(user_query: str):
   """Responds with tuple of (Error, Message)."""
@@ -23,13 +26,26 @@ def playlist_for_query(user_query: str):
   genres = spot.get_genre_seeds()['genres']
   attributes = spot.get_attributes()
   msgs = chat.create_prompt(user_query, attrs=attributes, genres=genres)
+
   chat_outputs = chat.get_assistant_message(msgs)
   if not chat_outputs:
     return ERROR_CODES.ERROR_CHAT_GPT, None
-  logger.info('gpt output: %s', chat_outputs)
+  logger.info('openai output: %s', chat_outputs)
+  using_cohere = False
   s_genres, s_artists, s_songs, s_attrs = spotify.chatOutputToStructured(chat_outputs, attributes=attributes)
+
+  # could openai successfully generate?
+  # try with cohere if not
   if not any([s_genres, s_artists, s_songs, s_attrs]):
-    return ERROR_CODES.ERROR_OPENAI_SEX, None
+    chat_outputs = cohere_lib.get_assistant_message(msgs)
+    logger.info('cohere output: %s', chat_outputs)
+    if not chat_outputs:
+      return ERROR_CODES.ERROR_COHERE_GEN, None
+    s_genres, s_artists, s_songs, s_attrs = spotify.chatOutputToStructured(chat_outputs, attributes=attributes)
+    if not any([s_genres, s_artists, s_songs, s_attrs]):
+      return ERROR_CODES.ERROR_NO_GEN, None
+    using_cohere = True
+
   s_artists = s_artists + list(s_songs.values())
   logger.info('before genres: %s', s_genres)
   s_genres = [g for g in s_genres if g in genres]
@@ -55,11 +71,15 @@ def playlist_for_query(user_query: str):
   with_retry = False
   while True:
     msgs = chat.create_playlist_name_from_query(user_query, with_retry=with_retry)
-    pnames_list = chat.get_assistant_message(msgs, temperature=.5)
+    if not using_cohere:
+      pnames_list = chat.get_assistant_message(msgs, temperature=.5)
+    else:
+      pnames_list = cohere_lib.get_assistant_message(msgs, max_tokens=100)
     logger.info('llm output playlist list: %s', pnames_list)
     for name in chat.parse_playlist_name(pnames_list):
       if not spot.does_playlist_exist(name):
         pname = name
+        logger.info('Playlist name: %s', pname)
         break
     if pname:
       break
@@ -77,6 +97,25 @@ def playlist_for_query(user_query: str):
   return ERROR_CODES.NO_ERROR, playlist_url
 
 
-query = 'Make me a playlist of ambient electronic music with some latin flare and sprinkle in some country with a little energy and not very loud but with pop. Similar to Daft Punk or Jon Hopkins or drone logic by Daniel Avery.'
+_ = '''
+user_query = 'make me a playlist to get high to'
 spot = spotify.SpotifyRequest()
 spot.reinit()
+
+genres = spot.get_genre_seeds()['genres']
+attributes = spot.get_attributes()
+msgs = chat.create_prompt(user_query, attrs=attributes, genres=genres)
+prompt = [m['content'] for m in msgs]
+prompt = '\n'.join(prompt)
+
+import cohere
+coapi = os.getenv('COHERE_TRIAL_API_KEY')
+co = cohere.Client(coapi)
+response = co.generate(
+  prompt=prompt,
+  model='xlarge',
+  max_tokens=400,
+  temperature=.9,
+  k=0
+  )
+'''
