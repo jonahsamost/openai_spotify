@@ -3,3 +3,5 @@ cohere
 spotipy
 twilio
 Flask
+gunicorn
+python-dotenv
