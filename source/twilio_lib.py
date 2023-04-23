@@ -3,11 +3,12 @@ from twilio.twiml.messaging_response import MessagingResponse
 from twilio.rest import Client
 from logic import playlist_for_query, ERROR_CODES
 from loglib import logger
+import ttdb
 import os
+from datetime import datetime as dt
 
 app = Flask(__name__)
 host='0.0.0.0'
-# host='127.0.0.1'
 port=8080
 
 FROM='from'
@@ -16,6 +17,8 @@ TO='to'
 account_sid = os.environ['TWILIO_ACCOUNT_SID']
 auth_token = os.environ['TWILIO_AUTH_TOKEN']
 THIS_NUMBER = '+16099084970'
+
+db = TTDB()
 
 convo_list = []
 class Conversations():
@@ -69,11 +72,19 @@ def incoming_sms():
   else:
     convo_list.append(Conversations(number_id, body))
 
-  # Start our TwiML response
-  resp = MessagingResponse()
-
   # Determine the right reply for this message
   logger.info(f'received message: {body} from {number_id}')
+  
+  # add user to user db if we havent seen before
+  if not db.does_user_exist(number_id):
+    logger.info('Got new user!: %s', number_id)
+    newuser = ttdb.Users(phone_number=number_id,
+      subscribed=0, playlist_created=0)
+    ttdb.user_insert(newuser.dict())
+
+  # add user message to message table
+  user_msg = ttdb.UserMessages(phone_number=number_id, message=body)
+  ttdb.user_message_insert(user_msg.dict())
 
   make_me = (
     "\n\nIf you want to make a playlist start your message with: "
@@ -81,19 +92,24 @@ def incoming_sms():
     f"\n\nFor example:\n\"{prologue} {user_request}\""
     )
   if body.lower().startswith(prologue.lower()):
+
+    # TODO if not subscibed and has already made playlist bounce the user
     query = body[len(prologue):]
 
+    url = ''
+    unhandled_err = ''
     # handle case where the user doesnt input anything
     if not query.strip():
-      rm = "I didn't understand that..." + make_me
-      resp.message(rm)
-      return str(resp)
+      out_msg = "I didn't understand that..." + make_me
+      _send_twilio_msg(number_id, out_msg)
+
     try:
       _send_twilio_msg(number_id, "Thanks for your message! We're working on it...")
       query = body
       err, url = _playlist_for_query(query)
     except Exception as e:
       logger.info('Unhandled exception: %s', e)
+      unhandled_err = e
       err = -1
     if err == ERROR_CODES.NO_ERROR:
       out_msg = (
@@ -102,13 +118,20 @@ def incoming_sms():
         f'{url}'
       )
       _send_twilio_msg(number_id, out_msg)
-      return ''
     elif err == ERROR_CODES.ERROR_NO_GEN:
       out_msg = 'seems your query may have been a bit too risque :( .). try again?'
       _send_twilio_msg(number_id, out_msg)
     else:
       out_msg = 'hrm thats an error on our end... try again?'
       _send_twilio_msg(number_id, out_msg)
+
+    url_id = url.split('/')[0] if err == ERROR_CODES.NO_ERROR else ''
+    plist = ttdb.Playlist(
+      phone_number=number_id, playlist_id=url_id, prompt=query,
+      success=int(err == ERROR_CODES.NO_ERROR),
+      time_created=dt.now(), error_message=unhandled_err
+    )
+    ttdb.playlist_insert(plist.dict())
   else:
     user_request = 'make me a playlist with ambient audio. music that will help me focus. super instrumental. study music but upbeat. high bpm. Similar to The Chemical Brothers or Justice'
     rm = "\n\nWelcome to ThumbTings!!" + make_me

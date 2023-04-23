@@ -1,0 +1,14 @@
+
+
+message Users {
+  string phone_number = 1;
+
+}
+
+message Playlists {
+  string playlist_url = 1;
+  string phone_number = 2; # which user created it
+  string prompt = 3; # which prompt created it
+  int successful = 4; # with the prompt was the playlist successfully created 
+  string error_message = 5; # if unsuccessful, was there an error message
+  }
