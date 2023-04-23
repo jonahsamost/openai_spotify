@@ -1,4 +1,5 @@
 from flask import Flask, request, redirect
+from flask import send_from_directory
 from twilio.twiml.messaging_response import MessagingResponse
 from twilio.rest import Client
 from logic import playlist_for_query, ERROR_CODES
@@ -17,8 +18,9 @@ TO='to'
 account_sid = os.environ['TWILIO_ACCOUNT_SID']
 auth_token = os.environ['TWILIO_AUTH_TOKEN']
 THIS_NUMBER = '+16099084970'
+VCF_HOSTING_PATH = 'https://tt.thumbtings.com:4443/reports/ThumbTings.vcf'
 
-db = TTDB()
+db = ttdb.TTDB()
 
 convo_list = []
 class Conversations():
@@ -43,6 +45,25 @@ def _send_twilio_msg(number_id: str, body: str):
   message = client.messages.create(
     body=body,
     from_=THIS_NUMBER,
+    to=number_id)
+
+
+@app.route('/reports/<path:name>')
+def send_vcf(name):
+  if name == 'ThumbTings.vcf':
+    return send_from_directory('reports', 'ThumbTings.vcf')
+  else:
+    return ''
+
+def _send_vcf_msg(number_id: str):
+  client = Client(account_sid, auth_token)
+  body = (
+    'We hope you like the playlist! '
+    'Add ThumbTings to your contacts for your future ease!')
+  message = client.messages.create(
+    body=body,
+    from_=THIS_NUMBER,
+    media_url=[VCF_HOSTING_PATH],
     to=number_id)
 
 
@@ -76,24 +97,46 @@ def incoming_sms():
   logger.info(f'received message: {body} from {number_id}')
   
   # add user to user db if we havent seen before
-  if not db.does_user_exist(number_id):
+  if not db.get_user(number_id):
     logger.info('Got new user!: %s', number_id)
+    # TODO for testing in beta only!!!!! remove when ready
+    subd = 1 if db.get_user_count() < 100 else 0
+    if not subd:
+      out_msg = 'Not accepting any more users at this time...check back in a bit'
+      _send_twilio_msg(number_id, out_msg)
+      return ''
+
     newuser = ttdb.Users(phone_number=number_id,
-      subscribed=0, playlist_created=0)
-    ttdb.user_insert(newuser.dict())
+      subscribed=subd, playlist_created=0)
+    db.user_insert(newuser.dict())
 
   # add user message to message table
   user_msg = ttdb.UserMessages(phone_number=number_id, message=body)
-  ttdb.user_message_insert(user_msg.dict())
+  db.user_message_insert(user_msg.dict())
 
   make_me = (
     "\n\nIf you want to make a playlist start your message with: "
-    "make me a playlist... then write whatever youre feeling, including genres, artists or song names."
+    "make me a playlist... then write whatever you're feeling, including genres, artists or song names."
     f"\n\nFor example:\n\"{prologue} {user_request}\""
     )
   if body.lower().startswith(prologue.lower()):
 
-    # TODO if not subscibed and has already made playlist bounce the user
+    cur_user = db.get_user(number_id)
+    if not cur_user:
+      logger.info('Cur user is none')
+      # should never hit this case as user was just created
+      out_msg = 'hrm thats an error on our end... '
+      _send_twilio_msg(number_id, out_msg)
+      return ''
+    
+    cur_user = ttdb.Users(*cur_user[0])
+    if not cur_user.subscribed and cur_user.playlist_created:
+      out_msg = (
+        "You've already created a playlist! "
+        "Sign up to get unlimited, time-limitless playlists")
+      _send_twilio_msg(number_id, out_msg)
+      return ''
+
     query = body[len(prologue):]
 
     url = ''
@@ -121,17 +164,22 @@ def incoming_sms():
     elif err == ERROR_CODES.ERROR_NO_GEN:
       out_msg = 'seems your query may have been a bit too risque :( .). try again?'
       _send_twilio_msg(number_id, out_msg)
+      return ''
     else:
       out_msg = 'hrm thats an error on our end... try again?'
       _send_twilio_msg(number_id, out_msg)
+      return ''
 
-    url_id = url.split('/')[0] if err == ERROR_CODES.NO_ERROR else ''
+    url_id = url.split('/')[-1] if err == ERROR_CODES.NO_ERROR else ''
     plist = ttdb.Playlist(
       phone_number=number_id, playlist_id=url_id, prompt=query,
       success=int(err == ERROR_CODES.NO_ERROR),
-      time_created=dt.now(), error_message=unhandled_err
-    )
-    ttdb.playlist_insert(plist.dict())
+      time_created=dt.now(), error_message=unhandled_err)
+    db.playlist_insert(plist.dict())
+    if not cur_user.playlist_created:
+      db.user_created_playlist(number_id)
+      _send_vcf_msg(number_id)
+
   else:
     user_request = 'make me a playlist with ambient audio. music that will help me focus. super instrumental. study music but upbeat. high bpm. Similar to The Chemical Brothers or Justice'
     rm = "\n\nWelcome to ThumbTings!!" + make_me

@@ -5,9 +5,6 @@ from datetime import datetime as dt
 import threading
 from loglib import logger
 
-from dotenv import load_dotenv
-load_dotenv('/home/f2_user/Glorface/.config')
-
 db_user = os.environ['DB_USER']
 db_pass = os.environ['DB_PASS']
 db_name = os.environ['DB_NAME']
@@ -73,7 +70,7 @@ class TTDB():
   def _create_tables(self):
     playlist = (
       f'create table if not exists {self.playlist_table} ('
-        'phone_number varchar primary key,'
+        'phone_number varchar,'
         'playlist_id varchar (40),'
         'prompt varchar (300),'
         'success integer not null,'
@@ -94,7 +91,7 @@ class TTDB():
 
     messages = (
       f'create table if not exists {self.user_messages} ('
-        'phone_number varchar primary key,'
+        'phone_number varchar,'
         'message varchar (300)'
         ');'
     )
@@ -118,8 +115,20 @@ class TTDB():
     )
     return self.execute(insert, *list(args.values()))
 
-  def does_user_exist(self, phone_number: str) -> bool:
-    q = f'select phone_number from {self.user_table} where phone_number = %s'
+  def get_user(self, phone_number: str) -> bool:
+    q = f'select * from {self.user_table} where phone_number = %s'
+    return self.execute(q, *[phone_number])
+
+  def get_user_count(self) -> int:
+    q = f'select count(*) from {self.user_table};'
+    return self.execute(q)[0][0]
+
+  def user_created_playlist(self, phone_number):
+    q = (
+      f'update {self.user_table} '
+      'set playlist_created=1 '
+      'where phone_number = %s;'
+      )
     return self.execute(q, *[phone_number])
 
   def _test_playlist_insert(self):
@@ -141,9 +150,3 @@ class TTDB():
       phone_number='+16093135446', message='adfasdfasdfasd fuck'
     )
     self.user_message_insert(d.dict())
-
-tt = TTDB()
-tt._test_playlist_insert()
-out = tt.execute('select * from playlist')
-n = out[0][0]
-
