@@ -62,25 +62,6 @@ def background_jobs():
 
   return ''
 
-
-convo_list = []
-class Conversations():
-  def __init__(self, number: str, body: str):
-    self.number = number
-    self.messages = [{'direction': FROM, 'body': body}]
-
-  def add_message(self, body: str, from_to: str) -> None:
-    self.messages.append({'direction': from_to, 'body': body})
-
-
-def ConversationForNumber(number):
-  global convo_list
-  for c in convo_list:
-    if c.number == number:
-      return c
-  return None
-
-
 def _send_twilio_msg(number_id: str, body: str):
   client = Client(account_sid, auth_token)
   message = client.messages.create(
@@ -127,12 +108,6 @@ def incoming_sms():
   number_id = request.values.get('From', None)
   if not body or not number_id:
     return ''
-  global convo_list
-  convo = ConversationForNumber(number_id)
-  if convo:
-    convo.add_message(body=body, from_to=FROM)
-  else:
-    convo_list.append(Conversations(number_id, body))
 
   # Determine the right reply for this message
   logger.info(f'received message: {body} from {number_id}')
