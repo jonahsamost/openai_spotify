@@ -15,8 +15,8 @@ import re
 app = Flask(__name__)
 
 app.config['BASIC_AUTH_REALM'] = 'realm'
-app.config['BASIC_AUTH_USERNAME'] = 'shitface'
-app.config['BASIC_AUTH_PASSWORD'] = 'glorface'
+app.config['BASIC_AUTH_USERNAME'] = os.environ['BASIC_AUTH_USER']
+app.config['BASIC_AUTH_PASSWORD'] = os.environ['BASIC_AUTH_PASS']
 basic_auth = BasicAuth(app)
 
 host='0.0.0.0'
@@ -36,6 +36,7 @@ db = ttdb.TTDB()
 @basic_auth.required
 def background_jobs():
   # started from a cronjob because hack shit
+
   logger.info('delete old playlists')
   q = f'select * from {db.playlist_table} where public = 1 and time_created < %s and deleted = 0'
   results = db.execute(q, (dt.now() - timedelta(hours=72)))
@@ -49,7 +50,6 @@ def background_jobs():
     q = f'update {db.playlist_table} set deleted=1 where playlist_id = %s'
     db.execute(q, (pid))
 
-  # started from a cronjob because hack shit
   logger.info('send contact info')
   q = f'select * from {db.user_table} where playlist_created=1 and contact_sent=0'
   results = db.execute(q)
@@ -100,7 +100,7 @@ def _send_vcf_msg(number_id: str):
   client = Client(account_sid, auth_token)
   body = (
     "We hope you're enjoying the playlist! "
-    "Add ThumbTings to your contacts for your future ease!")
+    "Add ThumbTings to your contacts to never miss a beat!")
   message = client.messages.create(
     body=body,
     from_=THIS_NUMBER,
