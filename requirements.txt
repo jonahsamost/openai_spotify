@@ -5,3 +5,6 @@ twilio
 Flask
 gunicorn
 python-dotenv
+psycopg2-binary
+vobject
+Flask-BasicAuth

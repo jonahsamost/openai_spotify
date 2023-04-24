@@ -21,13 +21,16 @@ class Playlist(BaseDC):
   prompt: str
   success: int
   time_created: dt
-  error_message: str = ''
+  error_message: str
+  public: int = 1
+  deleted: int = 0
 
 @dataclass
 class Users(BaseDC):
   phone_number: str
   subscribed: int
-  playlist_created: int
+  playlist_created: int = 0
+  contact_sent: int = 0
 
 @dataclass
 class UserMessages(BaseDC):
@@ -75,7 +78,9 @@ class TTDB():
         'prompt varchar (300),'
         'success integer not null,'
         'time_created timestamp with time zone,'
-        'error_message varchar (300)'
+        'error_message varchar (300),'
+        'public integer,'
+        'deleted integer'
         ');'
     )
     self.execute(playlist)
@@ -84,7 +89,8 @@ class TTDB():
       f'create table if not exists {self.user_table} ('
         'phone_number varchar primary key,'
         'subscribed int,'
-        'playlist_created int'
+        'playlist_created int,'
+        'contact_sent int'
       ');'
     )
     self.execute(users)

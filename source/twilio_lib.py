@@ -1,14 +1,24 @@
 from flask import Flask, request, redirect
 from flask import send_from_directory
+from flask_basicauth import BasicAuth
 from twilio.twiml.messaging_response import MessagingResponse
 from twilio.rest import Client
 from logic import playlist_for_query, ERROR_CODES
 from loglib import logger
 import ttdb
 import os
+import spotify
 from datetime import datetime as dt
+from datetime import timedelta
+import re
 
 app = Flask(__name__)
+
+app.config['BASIC_AUTH_REALM'] = 'realm'
+app.config['BASIC_AUTH_USERNAME'] = 'shitface'
+app.config['BASIC_AUTH_PASSWORD'] = 'glorface'
+basic_auth = BasicAuth(app)
+
 host='0.0.0.0'
 port=8080
 
@@ -21,6 +31,37 @@ THIS_NUMBER = '+16099084970'
 VCF_HOSTING_PATH = 'https://tt.thumbtings.com:4443/reports/ThumbTings.vcf'
 
 db = ttdb.TTDB()
+
+@app.route('/cron/background', methods=['GET'])
+@basic_auth.required
+def background_jobs():
+  # started from a cronjob because hack shit
+  logger.info('delete old playlists')
+  q = f'select * from {db.playlist_table} where public = 1 and time_created < %s and deleted = 0'
+  results = db.execute(q, (dt.now() - timedelta(hours=72)))
+  for result in results:
+    playlist = ttdb.Playlist(*result)
+    pid = playlist.playlist_id
+    spot = spotify.SpotifyRequest()
+    spot.reinit()
+    spot.playlist_delete_tracks(pid)
+    spot.playlist_make_private(pid)
+    q = f'update {db.playlist_table} set deleted=1 where playlist_id = %s'
+    db.execute(q, (pid))
+
+  # started from a cronjob because hack shit
+  logger.info('send contact info')
+  q = f'select * from {db.user_table} where playlist_created=1 and contact_sent=0'
+  results = db.execute(q)
+  for result in results:
+    user = ttdb.Users(*result)
+    logger.info('Sending contact to %s', user.phone_number)
+    _send_vcf_msg(user.phone_number)
+    q = f'update {db.user_table} set contact_sent=1 where phone_number = %s'
+    db.execute(q, (user.phone_number))
+
+  return ''
+
 
 convo_list = []
 class Conversations():
@@ -58,8 +99,8 @@ def send_vcf(name):
 def _send_vcf_msg(number_id: str):
   client = Client(account_sid, auth_token)
   body = (
-    'We hope you like the playlist! '
-    'Add ThumbTings to your contacts for your future ease!')
+    "We hope you're enjoying the playlist! "
+    "Add ThumbTings to your contacts for your future ease!")
   message = client.messages.create(
     body=body,
     from_=THIS_NUMBER,
@@ -107,7 +148,7 @@ def incoming_sms():
       return ''
 
     newuser = ttdb.Users(phone_number=number_id,
-      subscribed=subd, playlist_created=0)
+      subscribed=subd, playlist_created=0, contact_sent=0)
     db.user_insert(newuser.dict())
 
   # add user message to message table
@@ -119,7 +160,7 @@ def incoming_sms():
     "make me a playlist... then write whatever you're feeling, including genres, artists or song names."
     f"\n\nFor example:\n\"{prologue} {user_request}\""
     )
-  if body.lower().startswith(prologue.lower()):
+  if re.match('make me a play(\ )?list', body.lower()):
 
     cur_user = db.get_user(number_id)
     if not cur_user:
@@ -137,19 +178,17 @@ def incoming_sms():
       _send_twilio_msg(number_id, out_msg)
       return ''
 
-    query = body[len(prologue):]
 
     url = ''
     unhandled_err = ''
     # handle case where the user doesnt input anything
-    if not query.strip():
+    if not body[len(prologue):].strip():
       out_msg = "I didn't understand that..." + make_me
       _send_twilio_msg(number_id, out_msg)
 
     try:
       _send_twilio_msg(number_id, "Thanks for your message! We're working on it...")
-      query = body
-      err, url = _playlist_for_query(query)
+      err, url = _playlist_for_query(body)
     except Exception as e:
       logger.info('Unhandled exception: %s', e)
       unhandled_err = e
@@ -172,9 +211,12 @@ def incoming_sms():
 
     url_id = url.split('/')[-1] if err == ERROR_CODES.NO_ERROR else ''
     plist = ttdb.Playlist(
-      phone_number=number_id, playlist_id=url_id, prompt=query,
+      phone_number=number_id, playlist_id=url_id, prompt=body,
       success=int(err == ERROR_CODES.NO_ERROR),
-      time_created=dt.now(), error_message=unhandled_err)
+      time_created=dt.now(), 
+      public=1, # TODO change when subscription is ready
+      error_message=unhandled_err,
+      deleted=0)
     db.playlist_insert(plist.dict())
     if not cur_user.playlist_created:
       db.user_created_playlist(number_id)

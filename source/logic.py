@@ -87,7 +87,7 @@ def playlist_for_query(user_query: str):
     with_retry = True
 
   # get playlist info
-  playlist_id, playlist_url = spot.get_playlist_info(pname=pname)
+  playlist_id, playlist_url = spot.create_playlist(pname=pname)
   if playlist_id is None:
     logger.info('playlist id is none')
     return ERROR_CODES.ERROR_NO_PLAYLIST_CREATE, None

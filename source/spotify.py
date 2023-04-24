@@ -1,9 +1,11 @@
+from loglib import logger
 import json
+import random
 import re
 import requests
 import spotipy
+import string
 import time
-from loglib import logger
 
 
 spotify_creds={
@@ -104,7 +106,7 @@ class SpotifyRequest(object):
         try:
           if method == "GET":
             response = self._session.request(method, url, headers=headers, params=kwargs)
-          elif method == "POST":
+          elif method == "POST" or method == "PUT" or method == "DELETE":
             response = self._session.request(method, url, headers=headers, data=payload)
         except Exception as e:
           logger.info('Caught exception: %s', e)
@@ -113,7 +115,10 @@ class SpotifyRequest(object):
           continue 
 
         if response.status_code in [200, 201]:
-          return json.loads(response.text)
+          try:
+            return json.loads(response.text)
+          except:
+            return ''
         elif response.status_code == 429:
           sleep_time = response.headers['Retry-After']
           self.reinit()
@@ -225,6 +230,7 @@ class SpotifyRequest(object):
             if val > 1: val = 1
           params[f'target_{a}'] = val
       params['limit'] = limit
+      params['market'] = 'US' # only return us available stuff for now
       return self._call('GET', "recommendations", **params)
 
     def find_playlist_with_name(self, pname) -> dict:
@@ -240,7 +246,7 @@ class SpotifyRequest(object):
       playlist_info = self.find_playlist_with_name(pname)
       return playlist_info.get('id', None)
 
-    def get_playlist_info(self, pname: str):
+    def create_playlist(self, pname: str):
       result = self.user_playlist_create(pname)
       if result is None:
         return None, None
@@ -249,9 +255,30 @@ class SpotifyRequest(object):
     def playlist_write_tracks(self, playlist_id, track_uris):
       return self._call('POST', f'playlists/{playlist_id}/tracks', payload=json.dumps(track_uris), position=0)
 
+    def playlist_by_id(self, playlist_id):
+      return self._call('GET', f'playlists/{playlist_id}')
+
     def tracksForRecs(self, recs):
       return [track['uri'] for track in recs['tracks']]
 
+    def playlist_make_private(self, playlist_id):
+      new_name = ''.join(random.choices(string.ascii_uppercase + string.digits, k=7))
+      data = {'public': False, 'name': new_name}
+      return self._call('PUT', f'playlists/{playlist_id}', payload=json.dumps(data)) 
+
+    def playlist_get_track_uris(self, playlist_id) -> list:
+      pinfo = self.playlist_by_id(playlist_id)
+      if not pinfo:
+        return []
+      return [track['track']['uri'] for track in pinfo['tracks']['items']]
+
+    def playlist_delete_tracks(self, playlist_id):
+      track_uris = self.playlist_get_track_uris(playlist_id)
+      if not track_uris:
+        return
+      data = {'tracks': [{'uri': uri} for uri in track_uris]}
+      return self._call('DELETE', f'playlists/{playlist_id}/tracks', payload=json.dumps(data))
+      
 
 
 def chatOutputToStructured(txt, attributes=[]):
