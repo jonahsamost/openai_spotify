@@ -1,5 +1,5 @@
 from flask import Flask, request, redirect
-from flask import send_from_directory
+from flask import send_from_directory, render_template
 from flask_basicauth import BasicAuth
 from twilio.twiml.messaging_response import MessagingResponse
 from twilio.rest import Client
@@ -31,6 +31,13 @@ THIS_NUMBER = '+16099084970'
 VCF_HOSTING_PATH = 'https://tt.thumbtings.com:4443/reports/ThumbTings.vcf'
 
 db = ttdb.TTDB()
+
+@app.route('/testing')
+def render():
+  return render_template('index.html')
+
+
+
 
 @app.route('/cron/background', methods=['GET'])
 @basic_auth.required
@@ -77,22 +84,20 @@ def send_vcf(name):
   else:
     return ''
 
+VCF_MSG = "We hope you're enjoying the playlist! Add ThumbTings to your contacts to never miss a beat!"
 def _send_vcf_msg(number_id: str):
   client = Client(account_sid, auth_token)
-  body = (
-    "We hope you're enjoying the playlist! "
-    "Add ThumbTings to your contacts to never miss a beat!")
   message = client.messages.create(
-    body=body,
+    body=VCF_MSG,
     from_=THIS_NUMBER,
     media_url=[VCF_HOSTING_PATH],
     to=number_id)
 
 
-def _playlist_for_query(query):
-  err, url = playlist_for_query(query)
-  logger.info('Error: %s', err)
-  logger.info('Url: %s', url)
+def _playlist_for_query(query, number_id):
+  err, url = playlist_for_query(query, number_id)
+  logger.info('%s: Error: %s', number_id, err)
+  logger.info('%s: Url: %s', number_id, url)
   return err, url
 
 
@@ -110,11 +115,12 @@ def incoming_sms():
     return ''
 
   # Determine the right reply for this message
-  logger.info(f'received message: {body} from {number_id}')
+  ab = [ord(c) for c in body]
+  logger.info('%s: received message: |%s|ab|', number_id, body, ab)
   
   # add user to user db if we havent seen before
   if not db.get_user(number_id):
-    logger.info('Got new user!: %s', number_id)
+    logger.info('%s: Got new user!', number_id)
     # TODO for testing in beta only!!!!! remove when ready
     subd = 1 if db.get_user_count() < 100 else 0
     if not subd:
@@ -139,7 +145,7 @@ def incoming_sms():
 
     cur_user = db.get_user(number_id)
     if not cur_user:
-      logger.info('Cur user is none')
+      logger.info('%s: Cur user is none', number_id)
       # should never hit this case as user was just created
       out_msg = 'hrm thats an error on our end... '
       _send_twilio_msg(number_id, out_msg)
@@ -163,9 +169,9 @@ def incoming_sms():
 
     try:
       _send_twilio_msg(number_id, "Thanks for your message! We're working on it...")
-      err, url = _playlist_for_query(body)
+      err, url = _playlist_for_query(body, number_id)
     except Exception as e:
-      logger.info('Unhandled exception: %s', e)
+      logger.info('%s: Unhandled exception: %s', number_id, e)
       unhandled_err = e
       err = -1
     if err == ERROR_CODES.NO_ERROR:
@@ -175,12 +181,8 @@ def incoming_sms():
         f'{url}'
       )
       _send_twilio_msg(number_id, out_msg)
-    elif err == ERROR_CODES.ERROR_NO_GEN:
-      out_msg = 'seems your query may have been a bit too risque :( .). try again?'
-      _send_twilio_msg(number_id, out_msg)
-      return ''
     else:
-      out_msg = 'hrm thats an error on our end... try again?'
+      out_msg = "We couldn't create a playlist for your input... Try again?"
       _send_twilio_msg(number_id, out_msg)
       return ''
 
@@ -195,12 +197,16 @@ def incoming_sms():
     db.playlist_insert(plist.dict())
     if not cur_user.playlist_created:
       db.user_created_playlist(number_id)
-      _send_vcf_msg(number_id)
-
-  else:
+  # gets hit if a user likes/loves/blah the message
+  elif re.match("[A-Z][a-z]* [^\x00-\x7f]+.*[^\x00-\x7f]+", out):
+    pass
+  elif body.find('Hello ThumbTings!') == 0:
     user_request = 'make me a playlist with ambient audio. music that will help me focus. super instrumental. study music but upbeat. high bpm. Similar to The Chemical Brothers or Justice'
     rm = "\n\nWelcome to ThumbTings!!" + make_me
     _send_twilio_msg(number_id, rm)
+  else:
+    msg = "Hey, we didn't understand that last message! Try again!"
+    _send_twilio_msg(number_id, msg)
 
   return ''
 

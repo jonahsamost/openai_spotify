@@ -281,7 +281,7 @@ class SpotifyRequest(object):
       
 
 
-def chatOutputToStructured(txt, attributes=[]):
+def chatOutputToStructured(txt, attributes=[], number_id: str = ''):
   attrs = {}
   genres = []
   artists = []
@@ -305,16 +305,16 @@ def chatOutputToStructured(txt, attributes=[]):
       attrs[att.strip()] = vals.strip()
 
   if genres:
-    logger.info('found genres: %s', genres)
+    logger.info('%s: found genres: %s', number_id, genres)
     genres = [g.strip() for g in genres.split(',')] 
   
   if artists:
-    logger.info('found artists: %s', artists)
+    logger.info('%s: found artists: %s', number_id, artists)
     artists = [g.strip() for g in artists.split(',')] 
 
   song_artist_dic = {}
   if songs:
-    logger.info('found songs: %s', songs)
+    logger.info('%s: found songs: %s', number_id, songs)
     for sa in songs.split(','):
       s_by_a = sa.split('by')
       if len(s_by_a) != 2:
@@ -322,7 +322,7 @@ def chatOutputToStructured(txt, attributes=[]):
       cur_song = s_by_a[0].replace('"', '').strip()
       cur_artist = s_by_a[1].strip()
       song_artist_dic[cur_song] = cur_artist
-    logger.info('filtered songs: %s', song_artist_dic)
+    logger.info('%s: filtered songs: %s', number_id, song_artist_dic)
   songs = song_artist_dic
 
 

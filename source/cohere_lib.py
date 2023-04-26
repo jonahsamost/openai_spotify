@@ -10,7 +10,8 @@ def get_assistant_message(
   messages: List[Dict[str, str]],
   temperature: int = .9,
   max_tokens=250,
-  model: str = "xlarge") -> str:
+  model: str = "xlarge",
+  number_id: str = '') -> str:
 
   prompt = [m['content'] for m in messages]
   prompt = '\n'.join(prompt)
@@ -24,5 +25,5 @@ def get_assistant_message(
   try:
     return response[0].text
   except Exception as e:
-    logger.info('Cohere exception: %s', e)
+    logger.info('%s: Cohere exception: %s', number_id, e)
     return None

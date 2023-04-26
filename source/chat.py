@@ -11,7 +11,8 @@ assert openai.api_key, 'No openai key'
 def get_assistant_message(
   messages: List[Dict[str, str]],
   temperature: int = 0,
-  model: str = "gpt-3.5-turbo") -> str:
+  model: str = "gpt-3.5-turbo",
+  number_id: str = '') -> str:
   for i in range(3):
     try:
       res = openai.ChatCompletion.create(
@@ -21,7 +22,7 @@ def get_assistant_message(
       )
       return res['choices'][0]['message']['content']
     except Exception as e:
-      logger.info('Open AI Exception: %s', e)
+      logger.info('%s: Open AI Exception: %s', number_id, e)
       time.sleep(2)
 
 
@@ -127,6 +128,5 @@ def create_prompt(user_req, attrs='', genres=''):
   '''
   _set_role_text(msgs, query=output, role='assistant')
   _set_role_text(msgs, query=user_req, role='user')
-  # pprint_msgs(msgs)
   return msgs
 
