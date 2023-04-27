@@ -37,6 +37,9 @@ def render():
   return render_template('index.html')
 
 
+@app.route('/login')
+def login():
+  return render_template('login.html', body_class="text-center", include_js=False)
 
 
 @app.route('/cron/background', methods=['GET'])

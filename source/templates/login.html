@@ -1,0 +1,40 @@
+<html lang="en">
+
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
+  <link href="{{ url_for('static', filename='css/signin.css') }}" rel="stylesheet"/>
+  <link href="{{ url_for('static', filename='css/styles.css') }}" rel="stylesheet"/>
+</head>
+
+<body class="text-center">
+  <main class="form-signin">
+    <form>
+      <h1 class="h3 mb-3 fw-normal">Please sign in</h1>
+
+      <div class="form-floating">
+        <input type="email" class="form-control" id="floatingInput" placeholder="name@example.com">
+        <label for="floatingInput">Email address</label>
+      </div>
+      <div class="form-floating">
+        <input type="password" class="form-control" id="floatingPassword" placeholder="Password">
+        <label for="floatingPassword">Password</label>
+      </div>
+
+      <div class="checkbox mb-3">
+        <label>
+          <input type="checkbox" value="remember-me"> Remember me
+        </label>
+      </div>
+      <button class="w-100 btn btn-lg btn-primary" type="submit">Sign in</button>
+      <div class="mt-2">
+        <a href="/testing">Forgot username or password?</a>
+      </div>
+      <hr class="my-4 border-secondary"> <!-- Add the faint line -->
+      <div>
+        <a href="/signup">Sign up</a> <!-- Add the "Sign up" link -->
+      </div>
+    </form>
+  </main>
+</body>
+</html>
