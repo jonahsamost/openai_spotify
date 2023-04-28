@@ -1,27 +1,32 @@
-from flask import Flask, request, redirect
-from flask import send_from_directory, render_template
-from flask_basicauth import BasicAuth
-from twilio.twiml.messaging_response import MessagingResponse
-from twilio.rest import Client
-from logic import playlist_for_query, ERROR_CODES
-from loglib import logger
-import ttdb
+from flask import Flask
 import os
-import spotify
-from datetime import datetime as dt
-from datetime import timedelta
-import re
 
 app = Flask(__name__)
+app.secret_key = os.environ["FLASK_AUTH"]
+
+from datetime import datetime as dt
+from datetime import timedelta
+from flask import request, redirect
+from flask import send_from_directory, render_template
+from flask_basicauth import BasicAuth
+from logic import playlist_for_query, ERROR_CODES
+from loglib import logger
+from twilio.rest import Client
+from twilio.twiml.messaging_response import MessagingResponse
+import re
+import spotify
+import ttdb
+import auth
+
 
 app.config['BASIC_AUTH_REALM'] = 'realm'
 app.config['BASIC_AUTH_USERNAME'] = os.environ['BASIC_AUTH_USER']
 app.config['BASIC_AUTH_PASSWORD'] = os.environ['BASIC_AUTH_PASS']
 basic_auth = BasicAuth(app)
 
+
 host='0.0.0.0'
 port=8080
-
 FROM='from'
 TO='to'
 
@@ -32,14 +37,13 @@ VCF_HOSTING_PATH = 'https://tt.thumbtings.com:4443/reports/ThumbTings.vcf'
 
 db = ttdb.TTDB()
 
-@app.route('/testing')
-def render():
+
+### LOGINC ###
+
+
+@app.route('/')
+def landing():
   return render_template('index.html')
-
-
-@app.route('/login')
-def login():
-  return render_template('login.html', body_class="text-center", include_js=False)
 
 
 @app.route('/cron/background', methods=['GET'])
@@ -213,10 +217,6 @@ def incoming_sms():
 
   return ''
 
-
-@app.route("/", methods=['GET'])
-def blah():
-  return 'LOSING ALL MY INNOCENCE'
 
 if __name__ == "__main__":
     app.run(host=host, port=port)

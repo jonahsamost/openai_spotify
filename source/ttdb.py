@@ -38,6 +38,12 @@ class UserMessages(BaseDC):
   message: str
 
 
+@dataclass
+class UserPass(BaseDC):
+  email: str
+  password: str
+
+
 class TTDB():
   def __init__(self):
     self.conn = psycopg2.connect(
@@ -46,6 +52,7 @@ class TTDB():
     )
     self.cur = self.conn.cursor()
     self.lock = threading.Lock()
+    self.subscribers = 'subscribers'
     self.playlist_table = 'playlist'
     self.user_table = 'users'
     self.user_messages = 'user_messages'
@@ -102,6 +109,14 @@ class TTDB():
         ');'
     )
     self.execute(messages)
+
+    subscribers = (
+      f'create table if not exists {self.subscribers} ('
+        'email varchar primary key,'
+        'password varchar (300)'
+        ');'
+    )
+    self.execute(subscribers)
 
   def user_insert(self, args: dict):
     return self._table_insert(args, self.user_table)

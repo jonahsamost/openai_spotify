@@ -1,0 +1,32 @@
+<html lang="en">
+
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
+  <link href="{{ url_for('static', filename='css/signin.css') }}" rel="stylesheet"/>
+  <link href="{{ url_for('static', filename='css/styles.css') }}" rel="stylesheet"/>
+</head>
+
+<body class="text-center">
+  <main class="form-signin">
+    <form method="POST" action="/signup">
+      <h1 class="h3 mb-3 fw-normal">Please sign up</h1>
+      <div class="form-floating">
+        <input type="email" name="email" class="form-control" id="floatingEmail" placeholder="name@example.com">
+        <label for="floatingEmail">Email address</label>
+      </div>
+      <div class="form-floating">
+        <input type="password" name="password" class="form-control" id="floatingPassword" placeholder="Password">
+        <label for="floatingPassword">Password</label>
+      </div>
+      <div class="form-floating">
+        <input type="password" name="password_confirm" class="form-control" id="floatingConfirmPassword" placeholder="Confirm Password">
+        <label for="floatingConfirmPassword">Confirm Password</label>
+      </div>
+
+      <button class="w-100 btn btn-lg btn-primary" type="submit">Sign up</button>
+      <a href="/login">Already have an account? Sign in</a>
+    </form>
+  </main>
+</body>
+</html>
