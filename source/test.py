@@ -32,6 +32,7 @@ tt = TTDB()
 
 spot = spotify.SpotifyRequest()
 spot.reinit()
+cu = spot.current_user()
 
 # name = 'Irish-Sudanese Stereotypes-Based Aggression Motivation Mix'
 # pinfo = spot.find_playlist_with_name(name)
@@ -53,14 +54,14 @@ spot.reinit()
 # 
 # print(response.status_code)
 
-from twilio_lib import _send_vcf_msg
-
-db = tt
-q = f'select * from {db.user_table} where playlist_created=1 and contact_sent=0'
-results = db.execute(q)
-result = results[0]
-user = ttdb.Users(*result)
-phone_number = user.phone_number
-
-_send_vcf_msg(phone_number)
+# from twilio_lib import _send_vcf_msg
+# 
+# db = tt
+# q = f'select * from {db.user_table} where playlist_created=1 and contact_sent=0'
+# results = db.execute(q)
+# result = results[0]
+# user = ttdb.Users(*result)
+# phone_number = user.phone_number
+# 
+# _send_vcf_msg(phone_number)
 

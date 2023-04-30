@@ -26,11 +26,16 @@
                 </button>
                 <div class="collapse navbar-collapse" id="navbarResponsive">
                     <ul class="navbar-nav ms-auto">
+                        {% if current_user.is_authenticated %}
+                        <div class="nav-item"><a class="nav-link">Hi, {{ current_user.name }}!</a></div>
+                        {% endif %}
                         <li class="nav-item"><a class="nav-link" href="#about">About</a></li>
+                        {% if not current_user.is_authenticated %}
                         <li class="nav-item"><a class="nav-link" href="/login">Login</a></li>
+                        {% endif %}
                         <li class="nav-item"><a class="nav-link" href="#contact_us">Contact</a></li>
                         {% if current_user.is_authenticated %}
-                        <div class="nav-item"><a class="nav-link" href="#">Hi, {{ current_user.name }}!</a></div>
+                        <div class="nav-item"><a class="nav-link" href="/logout">Logout</a></div>
                         {% endif %}
                     </ul>
                 </div>
@@ -44,12 +49,29 @@
                     <div class="text-center">
                         <h1 class="mx-auto my-0 text-uppercase">ThumbTings</h1>
                         <h2 class="text-white-50 mx-auto mt-2 mb-5">Your endless imagination in a playlist.</h2>
-                        <div class="form-outline">
-                          <input type="search" id="form1" class="form-control custom-input" placeholder="Type query" aria-label="Search" />
-                        </div>
-                        <div class="button-container">
-                          <a class="btn btn-primary custom-button" href="#about">Get Started</a>
-                        </div>
+                        <form action="/spotify" method="post">
+                            <div class="form-outline">
+                                <!-- Give the input field a name attribute so that its value can be accessed in the Flask backend -->
+                                <input type="search" id="form1" name="query" class="form-control custom-input" placeholder="Make me a playlist..." aria-label="Search" />
+                            </div>
+                            <div class="button-container">
+                                <!-- Change the anchor tag to a submit button -->
+                                <button type="submit" class="btn btn-primary custom-button">Make it!</button>
+                            </div>
+                            {% if playlist_url %}
+                            <div class="button-container" style="margin-top: 10px;">
+                                <!-- Display the message and the button if the message variable is present -->
+                                <a class="btn btn-primary custom-button" href="{{ playlist_url }}">Your playlist awaits!</a>
+                            </div>
+                            {% endif %}
+                            {% if err_code %}
+                            <div class="message-container">
+                                <!-- Display the message if the message variable is present -->
+                                <p>Sorry, we couldn't understand your last message, try again!</p>
+                            </div>
+                            {% endif %}
+                        </form>
+
                     </div>
                 </div>
             </div>

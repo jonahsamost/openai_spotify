@@ -16,14 +16,25 @@ class ERROR_CODES(Enum):
   ERROR_NO_GEN=5
   ERROR_COHERE_GEN=6
 
-def playlist_for_query(user_query: str, number_id: str):
+def playlist_for_query(user_query: str,
+    number_id: str,
+    token: str = ''):
   """Responds with tuple of (Error, Message)."""
   spot = spotify.SpotifyRequest()
-  spot.reinit()
-  if not spot.current_user():
-    return ERROR_CODES.ERROR_NO_SPOTIFY_USER, None
+  if token:
+    spot.token = token
+    spot._tt_user = True
+    cuser = spot.current_user()
+    spot._username = cuser['id']
+    logger.info('current spotify user: %s', cuser['id'])
+  else:
+    spot.reinit()
+    if not spot.current_user():
+      return ERROR_CODES.ERROR_NO_SPOTIFY_USER, None
 
   genres = spot.get_genre_seeds()['genres']
+  with open('/tmp/genres', 'w') as fd:
+    fd.write('\n'.join(genres))
   attributes = spot.get_attributes()
   msgs = chat.create_prompt(user_query, attrs=attributes, genres=genres)
 
@@ -97,25 +108,3 @@ def playlist_for_query(user_query: str, number_id: str):
   return ERROR_CODES.NO_ERROR, playlist_url
 
 
-_ = '''
-user_query = 'make me a playlist to get high to'
-spot = spotify.SpotifyRequest()
-spot.reinit()
-
-genres = spot.get_genre_seeds()['genres']
-attributes = spot.get_attributes()
-msgs = chat.create_prompt(user_query, attrs=attributes, genres=genres)
-prompt = [m['content'] for m in msgs]
-prompt = '\n'.join(prompt)
-
-import cohere
-coapi = os.getenv('COHERE_TRIAL_API_KEY')
-co = cohere.Client(coapi)
-response = co.generate(
-  prompt=prompt,
-  model='xlarge',
-  max_tokens=400,
-  temperature=.9,
-  k=0
-  )
-'''

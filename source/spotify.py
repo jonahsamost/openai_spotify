@@ -6,15 +6,30 @@ import requests
 import spotipy
 import string
 import time
+import os
 
 
-spotify_creds={
-  'name':'Glorface',
-  'username':'315y4n5753fuii5mrqmakntqpi4e',
-  'id':'de4aa6a8863442799f4cf1348677f82d',
-  'secret':'7c906509f969452ca22ed14ce80cb5fe',
-  'redirect':'https://jasvandy.github.io/'
-}
+
+s_name = os.environ['SPOTIFY_NAME']
+s_username = os.environ['SPOTIFY_USERNAME']
+s_id = os.environ['SPOTIFY_ID']
+s_secret = os.environ['SPOTIFY_SECRET']
+s_redirect = os.environ['SPOTIFY_REDIRECT']
+
+AUTH_URL = 'https://accounts.spotify.com/authorize'
+TOKEN_URL = 'https://accounts.spotify.com/api/token'
+ME_URL = 'https://api.spotify.com/v1/me'
+
+scope=[
+    'playlist-read-private',
+    'playlist-read-collaborative',
+    'playlist-modify-private',
+    'playlist-modify-public',
+    'user-follow-read',
+    'user-top-read',
+    'user-read-recently-played',
+    'user-library-read',
+]
 
 class SpotifyRequest(object):
     def __init__(self):
@@ -24,16 +39,15 @@ class SpotifyRequest(object):
         self._session = requests.Session()
         self._username = None
         self._soa = None
-
         self._loc = 0
-        # self.reinit()
+        self._tt_user = False
 
     def reauth(self):
-        self._client_id = spotify_creds['id']
-        self._secret = spotify_creds['secret']
-        self._fname = spotify_creds['name']
-        self._redirect = spotify_creds['redirect']
-        self._username = spotify_creds['username']
+        self._client_id = s_id
+        self._secret = s_secret
+        self._fname = s_name
+        self._redirect = s_redirect
+        self._username = s_username
 
         self._soa = spotipy.oauth2.SpotifyOAuth(client_id=self._client_id, 
             client_secret=self._secret, redirect_uri=self._redirect, 
@@ -50,16 +64,6 @@ class SpotifyRequest(object):
 
     @property
     def scope(self):
-        scope=[
-            'playlist-read-private',
-            'playlist-read-collaborative',
-            'playlist-modify-private',
-            'playlist-modify-public',
-            'user-follow-read',
-            'user-top-read',
-            'user-read-recently-played',
-            'user-library-read',
-        ]
         return ' '.join(scope)
 
     @property
@@ -67,7 +71,11 @@ class SpotifyRequest(object):
         assert self._token is not None, 'self._token is None'
         return {"Authorization": "Bearer {0}".format(self.token)}
 
+
     def reinit(self):
+      if self._tt_user:
+       # TODO make reinit logic here
+        return
       def __tokes_init():
         self.reauth()
         tokes = None
@@ -213,9 +221,13 @@ class SpotifyRequest(object):
       for a, v in attributes.items():
         if a in attrs:
           if a == 'popularity':
-            val = int(v)
-            if val < 0: val = 0
-            if val > 100: val = 100
+            rem = re.match('[0-9]*', v)
+            if rem:
+              val = int(rem.group())
+              if val < 0: val = 0
+              if val > 100: val = 100
+            else:
+              continue
           elif a == 'tempo':
             rem = re.match('[0-9]*', v)
             if rem:
@@ -225,7 +237,10 @@ class SpotifyRequest(object):
             else:
               continue
           else:
-            val = int(v) / 100
+            val = re.match('[0-9]*', v)
+            if not val:
+              continue
+            val = int(val.group()) / 100
             if val < 0: val = 0
             if val > 1: val = 1
           params[f'target_{a}'] = val
@@ -301,7 +316,7 @@ def chatOutputToStructured(txt, attributes=[], number_id: str = ''):
       artists = vals
     elif att.find('songs') != -1 and not songs:
       songs = vals
-    elif att.strip() in attributes and not attrs:
+    elif att.strip() in attributes and att.strip() not in attrs:
       attrs[att.strip()] = vals.strip()
 
   if genres:

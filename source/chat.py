@@ -80,13 +80,14 @@ def create_prompt(user_req, attrs='', genres=''):
   # Each attribute can be in the set: [acousticness, danceability, duration_ms, energy, instrumentalness, liveness, loudness, popularity, speechiness, tempo]
   # Each genre can be in the set [acoustic, afrobeat, alt-rock, alternative, ambient, anime, black-metal, bluegrass, blues, bossanova, brazil, breakbeat, british, cantopop, chicago-house, children, chill, classical, club, comedy, country, dance, dancehall, death-metal, deep-house, detroit-techno, disco, disney, drum-and-bass, dub, dubstep, edm, electro, electronic, emo, folk, forro, french, funk, garage, german, gospel, goth, grindcore, groove, grunge, guitar, happy, hard-rock, hardcore, hardstyle, heavy-metal, hip-hop, holidays, honky-tonk, house, idm, indian, indie, indie-pop, industrial, iranian, j-dance, j-idol, j-pop, j-rock, jazz, k-pop, kids, latin, latino, malay, mandopop, metal, metal-misc, metalcore, minimal-techno, movies, mpb, new-age, new-release, opera, pagode, party, philippines-opm, piano, pop, pop-film, post-dubstep, power-pop, progressive-house, psych-rock, punk, punk-rock, r-n-b, rainy-day, reggae, reggaeton, road-trip, rock, rock-n-roll, rockabilly, romance, sad, salsa, samba, sertanejo, show-tunes, singer-songwriter, ska, sleep, songwriter, soul, soundtracks, spanish, study, summer, swedish, synth-pop, tango, techno, trance, trip-hop, turkish, work-out, world-music] 
   prompt = f'''
-  You are really really good at following exact directions.
-  Return the 4 most likely genres, named artists, and named songs, a number between 0 and 100 for each attribute.
+  You are an expert at following exact directions.
+  Return the 4 most likely genres, named artists, and named songs, and one number between 0 and 100 for each attribute.
   Each attribute can be in the set: {attrs}
   Each genre can be in the set {genres}
   Only list artists if the input contains an artist name.
   Only list songs if the input contains a song name.
   Think carefully about the attribute values.
+  
   '''
 
   msgs = []

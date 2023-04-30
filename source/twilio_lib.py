@@ -148,7 +148,15 @@ def incoming_sms():
     "make me a playlist... then write whatever you're feeling, including genres, artists or song names."
     f"\n\nFor example:\n\"{prologue} {user_request}\""
     )
-  if re.match('make', body.lower()):
+  # if a user likes/loves/etc a message, this regex tries to capture that
+  if re.match("[A-Z][a-z]* [^\x00-\x7f]+.*[^\x00-\x7f]+", body):
+    pass
+  # intro message handled
+  elif body.find('Hello ThumbTings!') == 0:
+    user_request = 'make me a playlist with ambient audio. music that will help me focus. super instrumental. study music but upbeat. high bpm. Similar to The Chemical Brothers or Justice'
+    rm = "\n\nWelcome to ThumbTings!!" + make_me
+    _send_twilio_msg(number_id, rm)
+  elif utils.is_playlist_intent(body):
 
     cur_user = db.get_user(number_id)
     if not cur_user:
@@ -166,13 +174,8 @@ def incoming_sms():
       _send_twilio_msg(number_id, out_msg)
       return ''
 
-
     url = ''
     unhandled_err = ''
-    # handle case where the user doesnt input anything
-    if not body[len(prologue):].strip():
-      out_msg = "I didn't understand that..." + make_me
-      _send_twilio_msg(number_id, out_msg)
 
     try:
       _send_twilio_msg(number_id, "Thanks for your message! We're working on it...")
@@ -189,7 +192,7 @@ def incoming_sms():
       )
       _send_twilio_msg(number_id, out_msg)
     else:
-      out_msg = "We couldn't create a playlist for your input... Try again?"
+      out_msg = "We're you wanting to create a playlist? Try again?"
       _send_twilio_msg(number_id, out_msg)
       return ''
 
@@ -205,14 +208,12 @@ def incoming_sms():
     if not cur_user.playlist_created:
       db.user_created_playlist(number_id)
   # gets hit if a user likes/loves/blah the message
-  elif re.match("[A-Z][a-z]* [^\x00-\x7f]+.*[^\x00-\x7f]+", body):
-    pass
-  elif body.find('Hello ThumbTings!') == 0:
-    user_request = 'make me a playlist with ambient audio. music that will help me focus. super instrumental. study music but upbeat. high bpm. Similar to The Chemical Brothers or Justice'
-    rm = "\n\nWelcome to ThumbTings!!" + make_me
-    _send_twilio_msg(number_id, rm)
   else:
-    msg = "Hey, we didn't understand that last message! Try again!"
+    msg = (
+      'Hey, we didn\'t understand that last message! Try again! '
+      'If you were wanting to create a playlist, try starting your request with '
+      '"make" or "create"!'
+    )
     _send_twilio_msg(number_id, msg)
 
   return ''
