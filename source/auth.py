@@ -94,15 +94,12 @@ def spotify_callback():
   }
 
   logger.info('The users query is: %s', session['spotify_query'])
-  # err_code, playlist_url = logic.playlist_for_query(
-  #   session['spotify_query'], 
-  #   number_id=str(current_user.get_id()),
-  #   token=session['tokens'].get('access_token') 
-  # )
-  err_code = ERROR_CODES.NO_ERROR
-  playlist_url = 'https://open.spotify.com/playlist/7Bu5WCnb7PBok0sRsuqO8z?si=a8e9958e98e64f1b'
+  err_code, playlist_url = logic.playlist_for_query(
+    session['spotify_query'], 
+    number_id=str(current_user.get_id()),
+    token=session['tokens'].get('access_token') 
+  )
 
-  # return redirect(url_for('landing', playlist_url=playlist_url))
   if err_code == ERROR_CODES.NO_ERROR:
     return render_template('index.html', playlist_url=playlist_url)
   else:
