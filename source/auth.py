@@ -34,11 +34,13 @@ def load_user(user_id):
 
 @app.route('/spotify', methods=["POST"])
 def spotify_login():
+  query = request.form.get('query')
+
   if not current_user.is_authenticated:
     flash('Login!')
+    session['query'] = query
     return redirect(url_for('login'))
 
-  query = request.form.get('query')
   logger.info('user query: %s', query)
   state = ''.join(
       secrets.choice(string.ascii_uppercase + string.digits) for _ in range(16)
@@ -132,7 +134,7 @@ def spotify_refresh():
 
 
 @app.route('/login')
-def login():
+def login(query: str = None):
   return render_template('login.html', body_class="text-center", include_js=False)
 
 
@@ -155,7 +157,7 @@ def login_post():
 
   login_user(user, remember=remember)
   
-  return redirect(url_for('landing'))
+  return redirect(url_for('landing', query=session['query']))
 
 
 @app.route('/signup')
@@ -197,7 +199,7 @@ def signup_post():
   login_user(new_user, remember=True)
 
   flash('Sign up successful!')
-  return redirect(url_for('landing'))
+  return redirect(url_for('landing', query=session['query']))
 
 
 @app.route('/logout')

@@ -51,8 +51,23 @@
                         <h2 class="text-white-50 mx-auto mt-2 mb-5">Your endless imagination in a playlist.</h2>
                         <form action="/spotify" method="post">
                             <div class="form-outline">
-                                <!-- Give the input field a name attribute so that its value can be accessed in the Flask backend -->
-                                <input type="search" id="form1" name="query" class="form-control custom-input" placeholder="Make me a playlist..." aria-label="Search" />
+                              <!-- Give the input field a name attribute so that its value can be accessed in the Flask backend -->
+                            <input type="search" id="form1" name="query" class="form-control custom-input" placeholder="Make me a playlist..." aria-label="Search" />
+
+                            <script>
+                              // Get the current URL
+                              const currentUrl = new URL(window.location.href);
+
+                              // Check if the URL has the "search" parameter
+                              if (currentUrl.searchParams.has('query')) {
+                                // Get the value of the "search" parameter
+                                const searchValue = currentUrl.searchParams.get('query');
+
+                                // Set the value of the input element with the ID "searchInput" to the value of the "search" parameter
+                                document.getElementById('form1').value = searchValue;
+                              }
+                            </script>
+
                             </div>
                             <div class="button-container">
                                 <!-- Change the anchor tag to a submit button -->
