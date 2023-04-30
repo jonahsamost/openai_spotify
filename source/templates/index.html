@@ -29,13 +29,9 @@
                         <li class="nav-item"><a class="nav-link" href="#about">About</a></li>
                         <li class="nav-item"><a class="nav-link" href="/login">Login</a></li>
                         <li class="nav-item"><a class="nav-link" href="#contact_us">Contact</a></li>
-                        {% with messages = get_flashed_messages() %}
-                          {% if messages %}
-                              {% for message in messages %}
-                                <div class="nav-item"><a class="nav-link" href="#">{{ message }}</a></div>
-                              {% endfor %}
-                          {% endif %}
-                        {% endwith %}
+                        {% if current_user.is_authenticated %}
+                        <div class="nav-item"><a class="nav-link" href="#">Hi, {{ current_user.name }}!</a></div>
+                        {% endif %}
                     </ul>
                 </div>
             </div>

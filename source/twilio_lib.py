@@ -9,6 +9,7 @@ from datetime import timedelta
 from flask import request, redirect
 from flask import send_from_directory, render_template
 from flask_basicauth import BasicAuth
+from flask_login import login_required, current_user
 from logic import playlist_for_query, ERROR_CODES
 from loglib import logger
 from twilio.rest import Client
@@ -43,8 +44,7 @@ db = ttdb.TTDB()
 
 @app.route('/')
 def landing():
-  return render_template('index.html')
-
+  return render_template('index.html', current_user=current_user)
 
 @app.route('/cron/background', methods=['GET'])
 @basic_auth.required
@@ -148,7 +148,7 @@ def incoming_sms():
     "make me a playlist... then write whatever you're feeling, including genres, artists or song names."
     f"\n\nFor example:\n\"{prologue} {user_request}\""
     )
-  if re.match('make me a play(\ )?list', body.lower()):
+  if re.match('make', body.lower()):
 
     cur_user = db.get_user(number_id)
     if not cur_user:
@@ -205,7 +205,7 @@ def incoming_sms():
     if not cur_user.playlist_created:
       db.user_created_playlist(number_id)
   # gets hit if a user likes/loves/blah the message
-  elif re.match("[A-Z][a-z]* [^\x00-\x7f]+.*[^\x00-\x7f]+", out):
+  elif re.match("[A-Z][a-z]* [^\x00-\x7f]+.*[^\x00-\x7f]+", body):
     pass
   elif body.find('Hello ThumbTings!') == 0:
     user_request = 'make me a playlist with ambient audio. music that will help me focus. super instrumental. study music but upbeat. high bpm. Similar to The Chemical Brothers or Justice'

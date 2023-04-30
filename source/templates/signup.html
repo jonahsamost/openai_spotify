@@ -9,8 +9,21 @@
 
 <body class="text-center">
   <main class="form-signin">
+    {% with messages = get_flashed_messages() %}
+      {% if messages %}
+        <div class="alert alert-info">
+          {% for message in messages %}
+            {{ message }}
+          {% endfor %}
+        </div>
+      {% endif %}
+    {% endwith %}
     <form method="POST" action="/signup">
       <h1 class="h3 mb-3 fw-normal">Please sign up</h1>
+      <div class="form-floating">
+        <input type="text" name="name" class="form-control" id="floatingName" placeholder="Name">
+        <label for="floatingName">Your name</label>
+      </div>
       <div class="form-floating">
         <input type="email" name="email" class="form-control" id="floatingEmail" placeholder="name@example.com">
         <label for="floatingEmail">Email address</label>

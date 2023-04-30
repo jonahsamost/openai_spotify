@@ -10,7 +10,7 @@ def get_assistant_message(
   messages: List[Dict[str, str]],
   temperature: int = .9,
   max_tokens=250,
-  model: str = "xlarge",
+  model: str = "base",
   number_id: str = '') -> str:
 
   prompt = [m['content'] for m in messages]
