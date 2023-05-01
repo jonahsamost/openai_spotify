@@ -7,6 +7,8 @@ import spotipy
 import string
 import time
 import os
+from flask import session
+import base64
 
 
 
@@ -342,3 +344,32 @@ def chatOutputToStructured(txt, attributes=[], number_id: str = ''):
 
 
   return genres, artists, songs, attrs
+
+
+def spotify_refresh_token():
+  '''Refresh spotify access token.'''
+
+  logger.info("Refreshing token")
+  payload = {
+    'grant_type': 'refresh_token',
+    'refresh_token': session.get('tokens').get('refresh_token'),
+  }
+  headers = {}
+  headers['Content-Type'] = 'application/x-www-form-urlencoded'
+  id_secret = bytes(s_id + ':' + s_secret, 'utf-8')
+  basic = b'Basic ' + base64.b64encode(id_secret)
+  headers['Authorization'] = basic.decode('utf-8')
+
+  res = requests.post(
+    TOKEN_URL,
+    # auth=(s_id, s_secret),
+    data=payload,
+    headers=headers
+  )
+  res_data = res.json()
+
+  # Load new token into session
+  session['tokens']['access_token'] = res_data.get('access_token')
+
+  return True
+

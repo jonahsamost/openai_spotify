@@ -12,6 +12,7 @@
         <!-- Google fonts-->
         <link href="https://fonts.googleapis.com/css?family=Varela+Round" rel="stylesheet" />
         <link href="https://fonts.googleapis.com/css?family=Nunito:200,200i,300,300i,400,400i,600,600i,700,700i,800,800i,900,900i" rel="stylesheet" />
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
         <!-- Core theme CSS (includes Bootstrap)-->
         <link href="{{ url_for('static', filename='css/styles.css') }}" rel="stylesheet" />
     </head>
@@ -47,6 +48,30 @@
             <div class="container px-4 px-lg-5 d-flex h-100 align-items-center justify-content-center">
                 <div class="d-flex justify-content-center">
                     <div class="text-center">
+
+                        {% with messages = get_flashed_messages() %}
+                          {% if messages %}
+                            <div class="text-center alert alert-info ", id="flashedMessage">
+                              {% for message in messages %}
+                                {{ message }}
+                              {% endfor %}
+                            </div>
+                          {% endif %}
+                        {% endwith %}
+
+                        <script>
+                          // Get the flashed message element by its ID
+                          const flashedMessage = document.getElementById('flashedMessage');
+
+                          // If the flashed message element exists, hide it after a few seconds
+                          if (flashedMessage) {
+                            // Set a timeout to hide the message after 3 seconds (3000 milliseconds)
+                            setTimeout(() => {
+                              flashedMessage.style.display = 'none';
+                            }, 4000);
+                          }
+                        </script>
+
                         <h1 class="mx-auto my-0 text-uppercase">ThumbTings</h1>
                         <h2 class="text-white-50 mx-auto mt-2 mb-5">Your endless imagination in a playlist.</h2>
                         <form action="/spotify" method="post">
@@ -71,18 +96,23 @@
                             </div>
                             <div class="button-container">
                                 <!-- Change the anchor tag to a submit button -->
-                                <button type="submit" class="btn btn-primary custom-button">Make it!</button>
+                                <button type="submit" onclick="showSpinner()" class="btn btn-primary custom-button">Make it!</button>
+                                <br>
+                                <i class="fas fa-spinner fa-spin" id="spinner" style="display: none;"></i>
+                                <script>
+                                  function showSpinner() {
+                                    // Show the spinner
+                                    document.getElementById('spinner').style.display = 'inline-block';
+                                  }
+                                </script>
                             </div>
                             {% if playlist_url %}
                             <div class="button-container" style="margin-top: 10px;">
                                 <!-- Display the message and the button if the message variable is present -->
-                                <a class="btn btn-primary custom-button" href="{{ playlist_url }}">Your playlist awaits!</a>
-                            </div>
-                            {% endif %}
-                            {% if err_code %}
-                            <div class="message-container">
-                                <!-- Display the message if the message variable is present -->
-                                <p>Sorry, we couldn't understand your last message, try again!</p>
+                                <a class="btn btn-primary custom-button" href="{{ playlist_url }}">Click for your playlist!</a>
+                                <script>
+                                    document.getElementById('spinner').style.display = 'none';
+                                </script>
                             </div>
                             {% endif %}
                         </form>

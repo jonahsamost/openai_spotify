@@ -6,7 +6,7 @@ app.secret_key = os.environ["FLASK_AUTH"]
 
 from datetime import datetime as dt
 from datetime import timedelta
-from flask import request, redirect
+from flask import request, redirect, flash
 from flask import send_from_directory, render_template
 from flask_basicauth import BasicAuth
 from flask_login import login_required, current_user
@@ -44,7 +44,10 @@ db = ttdb.TTDB()
 
 @app.route('/')
 def landing():
-  return render_template('index.html', current_user=current_user)
+  playlist_url = request.args.get('playlist_url', None)
+  return render_template('index.html',
+    current_user=current_user,
+    playlist_url=playlist_url)
 
 @app.route('/cron/background', methods=['GET'])
 @basic_auth.required

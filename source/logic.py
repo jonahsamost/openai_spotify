@@ -15,6 +15,7 @@ class ERROR_CODES(Enum):
   ERROR_NO_PLAYLIST_CREATE=4
   ERROR_NO_GEN=5
   ERROR_COHERE_GEN=6
+  ERROR_SPOTIFY_REFRESH=7
 
 def playlist_for_query(user_query: str,
     number_id: str,
@@ -25,6 +26,13 @@ def playlist_for_query(user_query: str,
     spot.token = token
     spot._tt_user = True
     cuser = spot.current_user()
+    if cuser is None:
+      spotify.spotify_refresh_token()
+      cuser = spot.current_user()
+      # try to refresh
+      if cuser is None:
+        return ERROR_CODES.ERROR_SPOTIFY_REFRESH, None
+
     spot._username = cuser['id']
     logger.info('current spotify user: %s', cuser['id'])
   else:

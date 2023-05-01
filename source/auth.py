@@ -38,8 +38,22 @@ def spotify_login():
 
   if not current_user.is_authenticated:
     flash('Login!')
-    session['query'] = query
+    session['spotify_query'] = query
     return redirect(url_for('login'))
+
+  if session.get('tokens', None) and session['tokens'].get('access_token', None):
+    err_code, playlist_url = logic.playlist_for_query(
+      query,
+      number_id=str(current_user.get_id()),
+      token=session['tokens'].get('access_token') 
+    )
+    if err_code != ERROR_CODES.ERROR_SPOTIFY_REFRESH:
+      if err_code == ERROR_CODES.NO_ERROR:
+        flash("Success!")
+        return render_template('index.html', playlist_url=playlist_url)
+      else:
+        flash("Sorry, we couldn't understand your last message, try again!")
+        return render_template('index.html')
 
   logger.info('user query: %s', query)
   state = ''.join(
@@ -96,45 +110,22 @@ def spotify_callback():
   }
 
   logger.info('The users query is: %s', session['spotify_query'])
+
   err_code, playlist_url = logic.playlist_for_query(
-    session['spotify_query'], 
+    session['spotify_query'],
     number_id=str(current_user.get_id()),
     token=session['tokens'].get('access_token') 
   )
-
   if err_code == ERROR_CODES.NO_ERROR:
-    return render_template('index.html', playlist_url=playlist_url)
+    flash("Success!")
+    return redirect(url_for('landing', playlist_url=playlist_url))
   else:
-    return render_template('index.html', err_code=1)
-
-
-@app.route('/spotify_refresh')
-@login_required
-def spotify_refresh():
-  '''Refresh spotify access token.'''
-
-  payload = {
-    'grant_type': 'refresh_token',
-    'refresh_token': session.get('tokens').get('refresh_token'),
-  }
-  headers = {'Content-Type': 'application/x-www-form-urlencoded'}
-
-  res = requests.post(
-    spotify.TOKEN_URL,
-    auth=(spotify.s_id, spotify.s_secret),
-    data=payload,
-    headers=headers
-  )
-  res_data = res.json()
-
-  # Load new token into session
-  session['tokens']['access_token'] = res_data.get('access_token')
-
-  return json.dumps(session['tokens'])
+    flash("Sorry, we couldn't understand your last message, try again!")
+    return redirect(url_for('landing'))
 
 
 @app.route('/login')
-def login(query: str = None):
+def login():
   return render_template('login.html', body_class="text-center", include_js=False)
 
 
@@ -157,7 +148,7 @@ def login_post():
 
   login_user(user, remember=remember)
   
-  return redirect(url_for('landing', query=session['query']))
+  return redirect(url_for('landing', query=session['spotify_query']))
 
 
 @app.route('/signup')
@@ -199,7 +190,7 @@ def signup_post():
   login_user(new_user, remember=True)
 
   flash('Sign up successful!')
-  return redirect(url_for('landing', query=session['query']))
+  return redirect(url_for('landing', query=session['spotify_query']))
 
 
 @app.route('/logout')
@@ -207,7 +198,7 @@ def signup_post():
 def logout():
   try:
     logout_user()
-    flash('You have been logged out.')
+    flash("Logged out!")
   except Exception as e:
     logger.info("Logout exception: %s", e)
   return redirect(url_for('landing'))
