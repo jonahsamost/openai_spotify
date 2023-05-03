@@ -8,3 +8,6 @@ python-dotenv
 psycopg2-binary
 vobject
 Flask-BasicAuth
+flask-login
+Werkzeug
+stripe

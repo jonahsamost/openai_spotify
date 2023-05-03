@@ -18,6 +18,7 @@ import re
 import spotify
 import ttdb
 import auth
+import utils
 
 
 app.config['BASIC_AUTH_REALM'] = 'realm'
@@ -126,7 +127,7 @@ def incoming_sms():
 
   # Determine the right reply for this message
   ab = [ord(c) for c in body]
-  logger.info('%s: received message: |%s|ab|', number_id, body, ab)
+  logger.info('%s: received message: |%s|%s|', number_id, body, ab)
   
   # add user to user db if we havent seen before
   if not db.get_user(number_id):
