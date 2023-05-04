@@ -35,7 +35,7 @@ TO='to'
 account_sid = os.environ['TWILIO_ACCOUNT_SID']
 auth_token = os.environ['TWILIO_AUTH_TOKEN']
 THIS_NUMBER = '+16099084970'
-VCF_HOSTING_PATH = 'https://tt.thumbtings.com:4443/reports/ThumbTings.vcf'
+VCF_HOSTING_PATH = 'https://tt.thumbtings.com/reports/ThumbTings.vcf'
 
 db = ttdb.TTDB()
 
@@ -54,6 +54,8 @@ def landing():
 @basic_auth.required
 def background_jobs():
   # started from a cronjob because hack shit
+  return
+# TODO
 
   logger.info('delete old playlists')
   q = f'select * from {db.playlist_table} where public = 1 and time_created < %s and deleted = 0'
@@ -191,7 +193,7 @@ def incoming_sms():
     if err == ERROR_CODES.NO_ERROR:
       out_msg = (
         '\n\nCreated! Check the url!!\n'
-        'This playlist will self-destruct in 3 days, so signup to get unlimited, time-limitless playlists\n'
+        # 'This playlist will self-destruct in 3 days, so signup to get unlimited, time-limitless playlists\n'
         f'{url}'
       )
       _send_twilio_msg(number_id, out_msg)

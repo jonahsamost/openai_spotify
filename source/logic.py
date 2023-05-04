@@ -6,6 +6,8 @@ import cohere_lib
 import os
 import spotify
 import sys
+import twilio_lib
+import ttdb
 
 class ERROR_CODES(Enum):
   NO_ERROR=0
@@ -19,21 +21,35 @@ class ERROR_CODES(Enum):
 
 def playlist_for_query(user_query: str,
     number_id: str,
-    token: str = ''):
+    access_token: str = '',
+    refresh_token: str = ''
+    ):
   """Responds with tuple of (Error, Message)."""
   spot = spotify.SpotifyRequest()
-  if token:
-    spot.token = token
+  if access_token:
+    spot.token = access_token
     spot._tt_user = True
     cuser = spot.current_user()
     if cuser is None:
-      spotify.spotify_refresh_token()
+      access_token = spotify.spotify_refresh_token()
       cuser = spot.current_user()
-      # try to refresh
+      # force refresh
       if cuser is None:
         return ERROR_CODES.ERROR_SPOTIFY_REFRESH, None
 
     spot._username = cuser['id']
+
+    screds = ttdb.SpotifyCreds(
+      username=cuser['id'],
+      access_token=access_token,
+      refresh_token=refresh_token
+    )
+    db = twilio_lib.db  
+    if not db.spotify_user_exists(cuser['id']):
+      db.spotify_insert(screds.dict())
+    else:
+      db.spotify_update_user(access_token, refresh_token, cuser['id'])
+
     logger.info('current spotify user: %s', cuser['id'])
   else:
     spot.reinit()

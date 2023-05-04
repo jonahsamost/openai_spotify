@@ -8,7 +8,6 @@ import json
 import secrets
 import requests
 import string
-import stripe
 from urllib.parse import urlencode
 
 auth = Blueprint('auth', __name__)
@@ -20,15 +19,10 @@ import spotify
 import logic
 from logic import ERROR_CODES
 
-
 login_manager = LoginManager()
 login_manager.init_app(app)
 login_manager.login_view = 'login'
 
-stripe.api_key = os.getenv('STRIPE_SECRET_TEST')
-webhook_secret = os.getenv('STRIPE_WEBHOOK_SECRET')
-
-BASE_URL = 'https://tt.thumbtings.com:4443/'
 
 @login_manager.user_loader
 def load_user(user_id):
@@ -39,139 +33,32 @@ def load_user(user_id):
   return ttdb.UserPass(*user[0])
 
 
-@app.route('/checkout')
-@login_required
-def stripe_checkout():
-  return render_template('checkout.html')
-
-
-@app.route('/success')
-@login_required
-def stripe_success():
-  flash('Payment successful!')
-  return redirect(url_for('landing'))
-
-
-@app.route('/cancel')
-@login_required
-def stripe_cancel():
-  flash('Payment cancelled')
-  return redirect(url_for('landing'))
-
-
-@app.route('/create-checkout-session', methods=['POST'])
-@login_required
-def create_checkout_session():
-  try:
-    prices = stripe.Price.list(
-      lookup_keys=[request.form['lookup_key']],
-      expand=['data.product']
-    )
-
-    cur_user = current_user.get_id()
-    logger.info('Creating checkout session for user: %s', cur_user)
-    checkout_session = stripe.checkout.Session.create(
-      line_items=[
-        {
-            'price': prices.data[0].id,
-            'quantity': 1,
-        },
-      ],
-      mode='subscription',
-      success_url=BASE_URL + '/success?session_id={CHECKOUT_SESSION_ID}',
-      cancel_url=BASE_URL + '/cancel',
-      metadata={
-        'user_id': cur_user
-      }
-    )
-    return redirect(checkout_session.url, code=303)
-  except Exception as e:
-    logger.info(e)
-    return "Server error", 500
-
-
-@app.route('/create-portal-session', methods=['POST'])
-@login_required
-def customer_portal():
-  # For demonstration purposes, we're using the Checkout session to retrieve the customer ID.
-  # Typically this is stored alongside the authenticated user in your database.
-  checkout_session_id = request.form.get('session_id')
-  logger.info('checkout session id: %s', checkout_session_id)
-  checkout_session = stripe.checkout.Session.retrieve(checkout_session_id)
-  logger.info('checkout session: %s', checkout_session)
-
-  portalSession = stripe.billing_portal.Session.create(
-    customer=checkout_session.customer,
-    return_url=BASE_URL,
-  )
-  return redirect(portalSession.url, code=303)
-
-
-@app.route('/webhook', methods=['POST'])
-def webhook_received():
-  # Replace this endpoint secret with your endpoint's unique secret
-  # If you are testing with the CLI, find the secret by running 'stripe listen'
-  # If you are using an endpoint defined with the API or dashboard, look in your webhook settings
-  # at https://dashboard.stripe.com/webhooks
-  
-  request_data = json.loads(request.data)
-  logger.info('in webhook: data: %s', request_data.keys())
-
-  if webhook_secret:
-    # Retrieve the event by verifying the signature using the raw body and secret if webhook signing is configured.
-    signature = request.headers.get('stripe-signature')
-    try:
-      event = stripe.Webhook.construct_event(
-        payload=request.data, sig_header=signature, secret=webhook_secret)
-      data = event['data']
-    except Exception as e:
-      logger.info("Bad webhook secret")
-      return jsonify({'status': 'failure'})
-    # Get the type of webhook event sent - used to check the status of PaymentIntents.
-    event_type = event['type']
-  else:
-    data = request_data['data']
-    event_type = request_data['type']
-  data_object = data['object']
-  cur_user = data_object['metadata'].get('user_id')
-  logger.info('event ' + event_type)
-
-  if event_type == 'checkout.session.completed':
-    logger.info('Payment succeeded for user: %s!', cur_user)
-  elif event_type == 'customer.subscription.trial_will_end':
-    logger.info('Subscription trial will end for user: %s', cur_user)
-  elif event_type == 'customer.subscription.created':
-    logger.info('Subscription created %s for user %s', event.id, cur_user)
-  elif event_type == 'customer.subscription.updated':
-    logger.info('Subscription created %s for user %s', event.id, cur_user)
-  elif event_type == 'customer.subscription.deleted':
-    logger.info('Subscription canceled: %s for user: %s', event.id, cur_user)
-
-  return jsonify({'status': 'success'})
-
 
 @app.route('/spotify', methods=["POST"])
 def spotify_login():
   query = request.form.get('query')
 
-  if not current_user.is_authenticated:
-    flash('Login!')
-    session['spotify_query'] = query
-    return redirect(url_for('login'))
+  # if not current_user.is_authenticated:
+  #   flash('Login!')
+  #   session['spotify_query'] = query
+  #   return redirect(url_for('login'))
 
   if session.get('tokens', None) and session['tokens'].get('access_token', None):
     err_code, playlist_url = logic.playlist_for_query(
       query,
       number_id=str(current_user.get_id()),
-      token=session['tokens'].get('access_token') 
+      access_token=session['tokens'].get('access_token'),
+      refresh_token=session['tokens'].get('refresh_token'),
     )
     if err_code != ERROR_CODES.ERROR_SPOTIFY_REFRESH:
       if err_code == ERROR_CODES.NO_ERROR:
         flash("Success!")
-        return render_template('index.html', playlist_url=playlist_url)
+        # return render_template('index.html', playlist_url=playlist_url)
+        return redirect(url_for('landing', playlist_url=playlist_url))
       else:
         flash("Sorry, we couldn't understand your last message, try again!")
-        return render_template('index.html')
+        # return render_template('index.html')
+        return redirect(url_for('landing'))
 
   logger.info('user query: %s', query)
   state = ''.join(
@@ -191,7 +78,6 @@ def spotify_login():
   return res
 
 @app.route('/spotify_callback')
-@login_required
 def spotify_callback():
   error = request.args.get('error')
   code = request.args.get('code')
@@ -229,17 +115,12 @@ def spotify_callback():
 
   logger.info('The users query is: %s', session['spotify_query'])
 
-  err_code, playlist_url = logic.playlist_for_query(
-    session['spotify_query'],
-    number_id=str(current_user.get_id()),
-    token=session['tokens'].get('access_token') 
-  )
-  if err_code == ERROR_CODES.NO_ERROR:
-    flash("Success!")
-    return redirect(url_for('landing', playlist_url=playlist_url))
-  else:
-    flash("Sorry, we couldn't understand your last message, try again!")
-    return redirect(url_for('landing'))
+  # err_code, playlist_url = logic.playlist_for_query(
+  #   session['spotify_query'],
+  #   number_id=str(current_user.get_id()),
+  #   token=session['tokens'].get('access_token') 
+  # )
+  return redirect(url_for('landing', query=session['spotify_query']))
 
 
 @app.route('/login')

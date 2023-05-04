@@ -50,6 +50,13 @@ class UserPass(UserMixin, BaseDC):
     return self.user_id
 
 
+@dataclass
+class SpotifyCreds(BaseDC):
+  username: str
+  access_token: str
+  refresh_token: str
+
+
 class TTDB():
   def __init__(self):
     self.conn = psycopg2.connect(
@@ -62,6 +69,7 @@ class TTDB():
     self.playlist_table = 'playlist'
     self.user_table = 'users'
     self.user_messages = 'user_messages'
+    self.spotify_users = 'spotify_users'
     self._create_tables()
 
   def close(self):
@@ -126,6 +134,18 @@ class TTDB():
     )
     self.execute(subscribers)
 
+    users = (
+      f'create table if not exists {self.spotify_users} ('
+        'username varchar primary key,'
+        'access_token varchar,'
+        'refresh_token varchar'
+      ');'
+    )
+    self.execute(users)
+
+  def spotify_insert(self, args: dict):
+    return self._table_insert(args, self.spotify_users)
+
   def user_insert(self, args: dict):
     return self._table_insert(args, self.user_table)
 
@@ -146,6 +166,21 @@ class TTDB():
       f'values ({values_ph})'
     )
     return self.execute(insert, *list(args.values()))
+
+  def spotify_user_exists(self, username: str):
+    """Checks if username already in db."""
+    q = f'select * from {self.spotify_users} where username = %s'
+    return self.execute(q, (username))
+
+  def spotify_update_user(self, username: str, access_token: str, refresh_token: str):
+    """Update tokens for user."""
+    q = (
+      f'update {self.spotify_users} '
+      'set access_token=%s, '
+      'set refresh_token=%s, '
+      'where username = %s;'
+      )
+    return self.execute(q, (access_token, refresh_token, username))
 
   def load_subscriber(self, user_id: str):
     """Load user given id."""

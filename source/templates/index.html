@@ -27,17 +27,23 @@
                 </button>
                 <div class="collapse navbar-collapse" id="navbarResponsive">
                     <ul class="navbar-nav ms-auto">
+                        <!--
                         {% if current_user.is_authenticated %}
                         <div class="nav-item"><a class="nav-link">Hi, {{ current_user.name }}!</a></div>
                         {% endif %}
+                        -->
                         <li class="nav-item"><a class="nav-link" href="#about">About</a></li>
+<!--
                         {% if not current_user.is_authenticated %}
                         <li class="nav-item"><a class="nav-link" href="/login">Login</a></li>
                         {% endif %}
+-->
                         <li class="nav-item"><a class="nav-link" href="#contact_us">Contact</a></li>
+<!--
                         {% if current_user.is_authenticated %}
                         <div class="nav-item"><a class="nav-link" href="/logout">Logout</a></div>
                         {% endif %}
+-->
                     </ul>
                 </div>
             </div>
@@ -45,6 +51,12 @@
 
         <!-- Masthead-->
         <header class="masthead">
+<style>
+    /* Define a CSS class for buttons with a specific width */
+    .custom-button {
+        width: 300px;
+    }
+</style>
             <div class="container px-4 px-lg-5 d-flex h-100 align-items-center justify-content-center">
                 <div class="d-flex justify-content-center">
                     <div class="text-center">
@@ -77,26 +89,26 @@
                         <form action="/spotify" method="post">
                             <div class="form-outline">
                               <!-- Give the input field a name attribute so that its value can be accessed in the Flask backend -->
-                            <input type="search" id="form1" name="query" class="form-control custom-input" placeholder="Make me a playlist..." aria-label="Search" />
+                              <input type="search" id="form1" name="query" class="form-control custom-input" placeholder="Make me a playlist..." aria-label="Search" />
 
-                            <script>
-                              // Get the current URL
-                              const currentUrl = new URL(window.location.href);
+                              <script>
+                                // Get the current URL
+                                const currentUrl = new URL(window.location.href);
 
-                              // Check if the URL has the "search" parameter
-                              if (currentUrl.searchParams.has('query')) {
-                                // Get the value of the "search" parameter
-                                const searchValue = currentUrl.searchParams.get('query');
+                                // Check if the URL has the "search" parameter
+                                if (currentUrl.searchParams.has('query')) {
+                                  // Get the value of the "search" parameter
+                                  const searchValue = currentUrl.searchParams.get('query');
 
-                                // Set the value of the input element with the ID "searchInput" to the value of the "search" parameter
-                                document.getElementById('form1').value = searchValue;
-                              }
-                            </script>
+                                  // Set the value of the input element with the ID "searchInput" to the value of the "search" parameter
+                                  document.getElementById('form1').value = searchValue;
+                                }
+                              </script>
 
                             </div>
                             <div class="button-container">
                                 <!-- Change the anchor tag to a submit button -->
-                                <button type="submit" onclick="showSpinner()" class="btn btn-primary custom-button">Make it!</button>
+                                <button type="submit" onclick="showSpinner()" class="btn btn-primary custom-button">Make it in my browser!</button>
                                 <br>
                                 <i class="fas fa-spinner fa-spin" id="spinner" style="display: none;"></i>
                                 <script>
@@ -116,30 +128,32 @@
                             </div>
                             {% endif %}
                         </form>
+                        <a id="smsLink" class="btn btn-primary custom-button" style="margin-top: 10px;">Just text me it!</a>
+                        <script>
+                            function updateSmsLink() {
+                                // Get the value of the query input field
+                                var queryValue = document.getElementById('form1').value;
+                                if (!queryValue)  queryValue = 'Make me a playlist that '
+                        
+                                // Construct the SMS link with the phone number and message body
+                                const smsLink = 'sms:+16099084970&body=' + encodeURIComponent(queryValue);
+                        
+                                // Set the href attribute of the anchor element
+                                document.getElementById('smsLink').href = smsLink;
+                            }
+                        
+                            // Update the SMS link when the page loads
+                            updateSmsLink();
+                        
+                            // Update the SMS link whenever the query input field changes
+                            document.getElementById('form1').addEventListener('input', updateSmsLink);
+                        </script>
 
                     </div>
                 </div>
             </div>
         </header>
         <!-- About-->
-<!--
-        <section class="about-section text-center" id="about">
-            <div class="container px-4 px-lg-5">
-                <div class="row gx-4 gx-lg-5 justify-content-center">
-                    <div class="col-lg-8">
-                        <h2 class="text-white mb-4">Built with Bootstrap 5</h2>
-                        <p class="text-white-50">
-                            Grayscale is a free Bootstrap theme created by Start Bootstrap. It can be yours right now, simply download the template on
-                            <a href="https://startbootstrap.com/theme/grayscale/">the preview page.</a>
-                            The theme is open source, and you can use it for any purpose, personal or commercial.
-                        </p>
-                    </div>
-                </div>
-                <img class="img-fluid" src="{{ url_for('static', filename='assets/img/ipad.png') }}" alt="..." />
-            </div>
-        </section>
--->
-        <!-- Projects-->
         <section class="projects-section bg-light" id="about">
             <div class="container px-4 px-lg-5">
                 <!-- Featured Project Row-->

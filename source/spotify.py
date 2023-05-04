@@ -346,13 +346,17 @@ def chatOutputToStructured(txt, attributes=[], number_id: str = ''):
   return genres, artists, songs, attrs
 
 
-def spotify_refresh_token():
+def spotify_refresh_token(refresh_token: str = ''):
   '''Refresh spotify access token.'''
 
   logger.info("Refreshing token")
+  if refresh_token:
+    token = refresh_token
+  else:
+    token = session.get('tokens').get('refresh_token')
   payload = {
     'grant_type': 'refresh_token',
-    'refresh_token': session.get('tokens').get('refresh_token'),
+    'refresh_token': token,
   }
   headers = {}
   headers['Content-Type'] = 'application/x-www-form-urlencoded'
@@ -362,14 +366,14 @@ def spotify_refresh_token():
 
   res = requests.post(
     TOKEN_URL,
-    # auth=(s_id, s_secret),
     data=payload,
     headers=headers
   )
   res_data = res.json()
 
   # Load new token into session
-  session['tokens']['access_token'] = res_data.get('access_token')
-
-  return True
+  access_token = res_data.get('access_token')
+  if not refresh_token:
+    session['tokens']['access_token'] = access_token
+  return access_token
 

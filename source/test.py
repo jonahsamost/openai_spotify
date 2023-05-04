@@ -23,16 +23,13 @@ tt = TTDB()
 # client = Client(account_sid, auth_token)
 
 # # VCF_HOSTING_PATH = 'http://143.198.173.172:5000/reports/ThumbTings.vcf'
-# VCF_HOSTING_PATH = 'https://tt.thumbtings.com:4443/reports/ThumbTings.vcf'
+# VCF_HOSTING_PATH = 'https://tt.thumbtings.com/reports/ThumbTings.vcf'
 # THIS_NUMBER = '+16099084970'
 # message = client.messages.create(
 #   from_=THIS_NUMBER, to='+16093135446',
 #   media_url=[VCF_HOSTING_PATH])
 
 
-spot = spotify.SpotifyRequest()
-spot.reinit()
-cu = spot.current_user()
 
 # name = 'Irish-Sudanese Stereotypes-Based Aggression Motivation Mix'
 # pinfo = spot.find_playlist_with_name(name)
@@ -64,4 +61,9 @@ cu = spot.current_user()
 # phone_number = user.phone_number
 # 
 # _send_vcf_msg(phone_number)
+
+susers = tt.execute('select * from spotify_users')
+js = ttdb.SpotifyCreds(*susers[0])
+spot = spotify.SpotifyRequest()
+spot.token = js.access_token
 
