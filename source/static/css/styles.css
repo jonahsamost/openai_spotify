@@ -2860,10 +2860,10 @@ textarea.form-control-lg {
 
 .btn-primary {
   --bs-btn-color: #fff;
-  --bs-btn-bg: #64a19d;
+  --bs-btn-bg: rgba(100, 161, 157, 0.4); /* Adjust the alpha value (0.7) for the desired transparency */
   --bs-btn-border-color: #64a19d;
   --bs-btn-hover-color: #fff;
-  --bs-btn-hover-bg: #558985;
+  --bs-btn-hover-bg: rgba(100, 161, 157, 0.9); /* Slightly less transparent on hover */
   --bs-btn-hover-border-color: #50817e;
   --bs-btn-focus-shadow-rgb: 123, 175, 172;
   --bs-btn-active-color: #fff;
@@ -2871,7 +2871,7 @@ textarea.form-control-lg {
   --bs-btn-active-border-color: #4b7976;
   --bs-btn-active-shadow: inset 0 3px 5px rgba(0, 0, 0, 0.125);
   --bs-btn-disabled-color: #fff;
-  --bs-btn-disabled-bg: #64a19d;
+  --bs-btn-disabled-bg: rgba(100, 161, 157, 0.4); /* More transparent when disabled */
   --bs-btn-disabled-border-color: #64a19d;
 }
 
