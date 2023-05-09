@@ -1,5 +1,6 @@
 from flask import Blueprint, render_template, redirect, url_for, request, flash, session
 from flask import make_response, redirect, abort, jsonify
+from flask_cors import cross_origin
 from flask_login import login_user, logout_user, login_required, LoginManager, current_user
 from werkzeug.security import generate_password_hash, check_password_hash
 
@@ -32,10 +33,32 @@ def load_user(user_id):
     return None
   return ttdb.UserPass(*user[0])
 
+def preflight():
+  headers = {
+    'Access-Control-Allow-Origin': '*',
+    'Access-Control-Allow-Methods': 'GET, POST',
+    'Access-Control-Allow-Headers': 'Content-Type',
+    'Access-Control-Max-Age': '86400',
+  }
+  return ('', 204, headers)
 
 
+@app.route('/api/hello', methods=["GET", "POST"])
+@app.route('/hello')
+@cross_origin()
+def npm():
+  if request.method == 'OPTIONS':
+    return preflight()
+  else:
+    response = {'message': 'Hello, world!'}
+    return jsonify(response)
+
+
+@app.route('/api/spotify', methods=["POST"])
 @app.route('/spotify', methods=["POST"])
 def spotify_login():
+  if request.method == 'OPTIONS':
+    return preflight()
   query = request.form.get('query')
 
   # if not current_user.is_authenticated:
@@ -43,6 +66,7 @@ def spotify_login():
   #   session['spotify_query'] = query
   #   return redirect(url_for('login'))
 
+  logger.info('user query: %s', query)
   if session.get('tokens', None) and session['tokens'].get('access_token', None):
     err_code, playlist_url = logic.playlist_for_query(
       query,
@@ -60,7 +84,6 @@ def spotify_login():
         # return render_template('index.html')
         return redirect(url_for('landing'))
 
-  logger.info('user query: %s', query)
   state = ''.join(
       secrets.choice(string.ascii_uppercase + string.digits) for _ in range(16)
       )
@@ -74,6 +97,7 @@ def spotify_login():
 
   res = make_response(redirect(f'{spotify.AUTH_URL}/?{urlencode(payload)}'))
   res.set_cookie('spotify_auth_state', state)
+  # res.headers['Access-Control-Allow-Origin'] = '*'
   session['spotify_query'] = query
   return res
 

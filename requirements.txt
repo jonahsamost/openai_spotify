@@ -11,3 +11,4 @@ Flask-BasicAuth
 flask-login
 Werkzeug
 stripe
+flask_cors

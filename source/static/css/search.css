@@ -1,0 +1,152 @@
+input[type="search"] {
+  width: 100%;
+  min-width: 0px;
+  outline: 2px solid transparent;
+  outline-offset: 2px;
+  position: relative;
+  appearance: none;
+  transition-property: common;
+  transition-duration: normal;
+  padding-top: 20px;
+  padding-bottom: 20px;
+  min-height: 60px;
+  line-height: 1;
+  vertical-align: top;
+  padding-left: 16px;
+  padding-right: 16px;
+  height: 40px;
+  border: 1px solid;
+  background: inherit;
+  background-color: transparent;
+  overflow: hidden;
+  resize: none;
+  max-width: 100%;
+  margin-right: 0;
+  font-size: 14px;
+  border-radius: 30px;
+  border-color: #172437;
+  color: rgba(255, 255, 255, 0.5);
+  caret-color: rgba(255, 255, 255, 0.5);
+}
+
+input[type="search"]:hover {
+  border-color: #a0aec0;
+}
+
+input[type="search"]:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+input[type="search"][readonly] {
+  box-shadow: none !important;
+  user-select: all;
+}
+
+input[type="search"][aria-invalid="true"] {
+  border-color: #e53e3e;
+  box-shadow: 0 0 0 1px #e53e3e;
+}
+
+input[type="search"]:focus {
+  z-index: 1;
+  border-color: #3182ce;
+  box-shadow: 0 0 0 1px #3182ce;
+  background-color: transparent;
+}
+
+input[type="search"]::placeholder {
+  color: rgba(255, 255, 255, 0.5);
+}
+
+
+.custom-button {
+  width: 200px;
+  border: 1px solid;
+  border-color: #172437;
+  border-radius: 30px;
+  color: white;
+  padding: 16px 16px;
+  font-size: 14px;
+  transition: all 0.3s;
+  opacity: 0.8;
+}
+
+.custom-button:hover {
+  border-color: #a0aec0;
+  color: #a0aec0;
+}
+
+.custom-button:focus {
+  z-index: 1;
+  border-color: #3182ce;
+  box-shadow: 0 0 0 1px #3182ce;
+  outline: none;
+}
+
+.custom-button:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+textarea.custom-input {
+  width: 100%;
+  min-width: 0px;
+  outline: 2px solid transparent;
+  outline-offset: 2px;
+  position: relative;
+  appearance: none;
+  transition-property: common;
+  transition-duration: normal;
+  padding-top: 20px;
+  padding-bottom: 20px;
+  min-height: 60px;
+  line-height: 1;
+  vertical-align: top;
+  padding-left: 16px;
+  padding-right: 16px;
+  height: 40px;
+  border: 1px solid;
+  background: inherit;
+  background-color: transparent;
+  overflow: hidden;
+  resize: none;
+  max-width: 100%;
+  margin-right: 0;
+  font-size: 14px;
+  border-radius: 30px;
+  border-color: #172437;
+  color: rgba(255, 255, 255, 0.5);
+  caret-color: rgba(255, 255, 255, 0.5);
+}
+
+textarea.custom-input:hover {
+  border-color: #a0aec0;
+}
+
+textarea.custom-input:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+textarea.custom-input[readonly] {
+  box-shadow: none !important;
+  user-select: all;
+}
+
+textarea.custom-input[aria-invalid="true"] {
+  border-color: #e53e3e;
+  box-shadow: 0 0 0 1px #e53e3e;
+}
+
+textarea.custom-input:focus {
+  z-index: 1;
+  border-color: #3182ce;
+  box-shadow: 0 0 0 1px #3182ce;
+  background-color: transparent;
+}
+
+textarea.custom-input::placeholder {
+  color: rgba(255, 255, 255, 0.5);
+}
+
