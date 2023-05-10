@@ -42,7 +42,6 @@ class SpotifyRequest(object):
         self._username = None
         self._soa = None
         self._loc = 0
-        self._tt_user = False
 
     def reauth(self):
         self._client_id = s_id
@@ -75,9 +74,6 @@ class SpotifyRequest(object):
 
 
     def reinit(self):
-      if self._tt_user:
-       # TODO make reinit logic here
-        return
       def __tokes_init():
         self.reauth()
         tokes = None
@@ -132,6 +128,8 @@ class SpotifyRequest(object):
         elif response.status_code == 429:
           sleep_time = response.headers['Retry-After']
           self.reinit()
+        elif response.status_code == 504: # Service didnt reply before timeout
+          time.sleep(2)
         else:
           logger.info(f"Error: {response.status_code}, {response.text}")
           return None

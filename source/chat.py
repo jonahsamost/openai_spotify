@@ -128,6 +128,25 @@ def create_prompt(user_req, attrs='', genres=''):
   tempo: 140
   '''
   _set_role_text(msgs, query=output, role='assistant')
+
+  query = 'Make me a musical playlist that conforms to: country'
+  _set_role_text(msgs, query=query, role='user')
+  output = '''
+  genres: country, bluegrass
+  artists:
+  songs:
+  acousticness: 50
+  danceability: 50
+  energy: 50
+  instrumentalness: 50
+  liveness: 50
+  loudness: 50
+  popularity: 50
+  speechiness:50
+  tempo: 150
+  '''
+  _set_role_text(msgs, query=output, role='assistant')
+
   _set_role_text(msgs, query=user_req, role='user')
   return msgs
 

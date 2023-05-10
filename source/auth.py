@@ -48,10 +48,10 @@ def spotify_login():
   #   return redirect(url_for('login'))
 
   logger.info('user query: %s', query)
-  query = 'Make me a musical playlist that conforms to: ' + query
   if session.get('tokens', None) and session['tokens'].get('access_token', None):
+    nquery = 'Make me a musical playlist that conforms to: ' + query
     err_code, playlist_url = logic.playlist_for_query(
-      query,
+      nquery,
       number_id=str(current_user.get_id()),
       access_token=session['tokens'].get('access_token'),
       refresh_token=session['tokens'].get('refresh_token'),
@@ -107,7 +107,7 @@ def spotify_callback():
   res_data = res.json()
 
   if res_data.get('error') or res.status_code != 200:
-    app.logger.error(
+    logger.info(
       'Failed to receive token: %s',
       res_data.get('error', 'No error information received.'),
     )

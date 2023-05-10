@@ -35,7 +35,7 @@ TO='to'
 account_sid = os.environ['TWILIO_ACCOUNT_SID']
 auth_token = os.environ['TWILIO_AUTH_TOKEN']
 THIS_NUMBER = '+16099084970'
-VCF_HOSTING_PATH = 'https://tt.thumbtings.com/reports/ThumbTings.vcf'
+VCF_HOSTING_PATH = 'https://thumbtings.com/reports/ThumbTings.vcf'
 
 db = ttdb.TTDB()
 

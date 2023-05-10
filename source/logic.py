@@ -27,39 +27,49 @@ def playlist_for_query(user_query: str,
   """Responds with tuple of (Error, Message)."""
   spot = spotify.SpotifyRequest()
   if access_token:
+    using_thumb_tings = False
     spot.token = access_token
     spot._tt_user = True
     cuser = spot.current_user()
+    logger.info('cuser: %s', cuser)
     if cuser is None:
       access_token = spotify.spotify_refresh_token()
       spot.token = access_token
       cuser = spot.current_user()
+      logger.info('cuser: %s', cuser)
       # force refresh
       if cuser is None:
-        return ERROR_CODES.ERROR_SPOTIFY_REFRESH, None
+        # always backup to using ThumbTings
+        spot.reinit()
+        using_thumb_tings = True
+        logger.info("Using thumbtings account")
+        cuser = spot.current_user()
+        logger.info('cuser: %s', cuser)
+        if not cuser:
+          return ERROR_CODES.ERROR_NO_SPOTIFY_USER, None
 
-    spot._username = cuser['id']
+    if not using_thumb_tings:
+      spot._username = cuser['id']
 
-    screds = ttdb.SpotifyCreds(
-      username=cuser['id'],
-      access_token=access_token,
-      refresh_token=refresh_token
-    )
-    db = twilio_lib.db  
-    if not db.spotify_user_exists(cuser['id']):
-      db.spotify_insert(screds.dict())
-    else:
-      db.spotify_update_user(access_token, refresh_token, cuser['id'])
+      screds = ttdb.SpotifyCreds(
+        username=cuser['id'],
+        access_token=access_token,
+        refresh_token=refresh_token
+      )
+      db = twilio_lib.db  
+      if not db.spotify_user_exists(cuser['id']):
+        db.spotify_insert(screds.dict())
+      else:
+        db.spotify_update_user(access_token, refresh_token, cuser['id'])
 
-    logger.info('current spotify user: %s', cuser['id'])
+      logger.info('current spotify user: %s', cuser['id'])
   else:
     spot.reinit()
+    logger.info('cuser: %s', spot.current_user())
     if not spot.current_user():
       return ERROR_CODES.ERROR_NO_SPOTIFY_USER, None
 
   genres = spot.get_genre_seeds()['genres']
-  with open('/tmp/genres', 'w') as fd:
-    fd.write('\n'.join(genres))
   attributes = spot.get_attributes()
   msgs = chat.create_prompt(user_query, attrs=attributes, genres=genres)
 
