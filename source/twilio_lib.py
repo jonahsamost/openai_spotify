@@ -1,10 +1,8 @@
 from flask import Flask
 import os
-from flask_cors import CORS
 
 app = Flask(__name__)
 app.secret_key = os.environ["FLASK_AUTH"]
-CORS(app, resources={r"/api/*": {"origins": "*"}})
 
 from datetime import datetime as dt
 from datetime import timedelta
@@ -26,7 +24,6 @@ import utils
 app.config['BASIC_AUTH_REALM'] = 'realm'
 app.config['BASIC_AUTH_USERNAME'] = os.environ['BASIC_AUTH_USER']
 app.config['BASIC_AUTH_PASSWORD'] = os.environ['BASIC_AUTH_PASS']
-app.config['CORS_HEADERS'] = 'Content-Type'
 basic_auth = BasicAuth(app)
 
 

@@ -33,32 +33,13 @@ def load_user(user_id):
     return None
   return ttdb.UserPass(*user[0])
 
-def preflight():
-  headers = {
-    'Access-Control-Allow-Origin': '*',
-    'Access-Control-Allow-Methods': 'GET, POST',
-    'Access-Control-Allow-Headers': 'Content-Type',
-    'Access-Control-Max-Age': '86400',
-  }
-  return ('', 204, headers)
+@app.route('/spotify', methods=["GET"])
+def spotify_landing():
+  return redirect(url_for('landing'))
 
 
-@app.route('/api/hello', methods=["GET", "POST"])
-@app.route('/hello')
-@cross_origin()
-def npm():
-  if request.method == 'OPTIONS':
-    return preflight()
-  else:
-    response = {'message': 'Hello, world!'}
-    return jsonify(response)
-
-
-@app.route('/api/spotify', methods=["POST"])
 @app.route('/spotify', methods=["POST"])
 def spotify_login():
-  if request.method == 'OPTIONS':
-    return preflight()
   query = request.form.get('query')
 
   # if not current_user.is_authenticated:
@@ -67,6 +48,7 @@ def spotify_login():
   #   return redirect(url_for('login'))
 
   logger.info('user query: %s', query)
+  query = 'Make me a musical playlist that conforms to: ' + query
   if session.get('tokens', None) and session['tokens'].get('access_token', None):
     err_code, playlist_url = logic.playlist_for_query(
       query,
@@ -76,9 +58,9 @@ def spotify_login():
     )
     if err_code != ERROR_CODES.ERROR_SPOTIFY_REFRESH:
       if err_code == ERROR_CODES.NO_ERROR:
-        flash("Success!")
-        # return render_template('index.html', playlist_url=playlist_url)
-        return redirect(url_for('landing', playlist_url=playlist_url))
+        # flash("Success!")
+        return render_template('index.html', playlist_url=playlist_url)
+        # return redirect(url_for('landing', playlist_url=playlist_url))
       else:
         flash("Sorry, we couldn't understand your last message, try again!")
         # return render_template('index.html')
@@ -97,7 +79,6 @@ def spotify_login():
 
   res = make_response(redirect(f'{spotify.AUTH_URL}/?{urlencode(payload)}'))
   res.set_cookie('spotify_auth_state', state)
-  # res.headers['Access-Control-Allow-Origin'] = '*'
   session['spotify_query'] = query
   return res
 

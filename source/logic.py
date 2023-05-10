@@ -32,6 +32,7 @@ def playlist_for_query(user_query: str,
     cuser = spot.current_user()
     if cuser is None:
       access_token = spotify.spotify_refresh_token()
+      spot.token = access_token
       cuser = spot.current_user()
       # force refresh
       if cuser is None:

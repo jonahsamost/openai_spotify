@@ -302,7 +302,7 @@ def chatOutputToStructured(txt, attributes=[], number_id: str = ''):
   attrs = {}
   genres = []
   artists = []
-  songs = []
+  songs = {}
 
   attributes = attributes + ['tempo']
   for val in txt.split('\n'):
@@ -342,6 +342,8 @@ def chatOutputToStructured(txt, attributes=[], number_id: str = ''):
     logger.info('%s: filtered songs: %s', number_id, song_artist_dic)
   songs = song_artist_dic
 
+  if not isinstance(artists, list): artists = list(artists)
+  if not isinstance(genres, list): genres = list(genres)
 
   return genres, artists, songs, attrs
 

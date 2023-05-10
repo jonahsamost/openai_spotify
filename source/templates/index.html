@@ -82,12 +82,7 @@
                         <h2 class="text-white-50 mx-auto mt-2 mb-5">Your endless imagination in a playlist.</h2>
                         <form action="/spotify" method="post">
                             <div class="form-outline">
-                              <!-- Give the input field a name attribute so that its value can be accessed in the Flask backend -->
-                              <!-- 
-                              <input type="search" id="form1" name="query" class="form-control custom-input" placeholder="Make me a playlist..." aria-label="Search"/>
-                              -->
-
-                              <textarea id="form1" name="query" rows=1 class="form-control custom-input" placeholder="Make me a playlist..." aria-label="Search" style="color: white;"></textarea>
+                              <textarea id="form1" name="query" rows=1 class="form-control custom-input" autocorrect="off" placeholder="Make me a playlist..." aria-label="Search" style="color: white;"></textarea>
                               <script>
                                 const textarea = document.getElementById('form1');
 
@@ -116,25 +111,36 @@
                               </script>
 
                             </div>
-                            <div class="button-container">
+                            <div class="button-container" style="position: relative; display: inline-block;">
+
                                 <!-- Change the anchor tag to a submit button -->
                                 <button type="submit" onclick="showSpinner()" class="btn btn-primary custom-button" id="inBrowserButton" disabled>Lets Make It!</button>
 
                                 <br>
-                                <i class="fas fa-spinner fa-spin" id="spinner" style="display: none;"></i>
+                                <i class="fas fa-spinner fa-spin" id="spinner" style="position: absolute; top: 50%; left: 50%; margin-top: -8px; margin-left: -12px; display: none;"></i>
+
                                 <script>
-                                  function showSpinner() {
-                                    // Show the spinner
-                                    document.getElementById('spinner').style.display = 'inline-block';
-                                  }
+                                    // var loadingText = "Loading..."; // Text to display while loading
+
+                                    function showSpinner() {
+                                        // Show the spinner
+                                        document.getElementById('spinner').style.display = 'inline-block';
+
+                                        // Change the button text
+                                        var button = document.getElementById('inBrowserButton');
+                                        button.innerText = '';
+                                    }
                                 </script>
                             </div>
                             {% if playlist_url %}
                             <div class="button-container" style="margin-top: 10px;">
                                 <!-- Display the message and the button if the message variable is present -->
-                                <a class="btn btn-primary custom-button" href="{{ playlist_url }}">Click for your playlist!</a>
+                                <a class="btn btn-primary custom-button" href="{{ playlist_url }}">Here you go!</a>
                                 <script>
                                     document.getElementById('spinner').style.display = 'none';
+                                    var button = document.getElementById('inBrowserButton');
+                                    var buttonText = "Lets Make It!"; // Save the original button text
+                                    button.innerText = buttonText;
                                 </script>
                             </div>
                             {% endif %}
@@ -160,25 +166,25 @@
                             // Update the SMS link whenever the query input field changes
                             document.getElementById('form1').addEventListener('input', updateSmsLink);
                         </script>
-<script>
-    // Get the input field and buttons by their IDs
-    const searchInput = document.getElementById('form1');
-    const submitButton = document.getElementById('inBrowserButton');
-    // const anchorButton = document.getElementById('anchorButton');
-
-    // Function to enable or disable buttons based on input field value
-    function updateButtonState() {
-        const hasText = searchInput.value.trim().length > 0;
-        submitButton.disabled = !hasText;
-        // anchorButton.disabled = !hasText;
-    }
-
-    // Add an input event listener to the search input field
-    searchInput.addEventListener('input', updateButtonState);
-
-    // Call the function to set the initial button state
-    updateButtonState();
-</script>
+                        <script>
+                            // Get the input field and buttons by their IDs
+                            const searchInput = document.getElementById('form1');
+                            const submitButton = document.getElementById('inBrowserButton');
+                            // const anchorButton = document.getElementById('anchorButton');
+                        
+                            // Function to enable or disable buttons based on input field value
+                            function updateButtonState() {
+                                const hasText = searchInput.value.trim().length > 0;
+                                submitButton.disabled = !hasText;
+                                // anchorButton.disabled = !hasText;
+                            }
+                        
+                            // Add an input event listener to the search input field
+                            searchInput.addEventListener('input', updateButtonState);
+                        
+                            // Call the function to set the initial button state
+                            updateButtonState();
+                        </script>
 
                     </div>
                 </div>

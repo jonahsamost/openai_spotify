@@ -5,6 +5,8 @@ P1 -- make chatgpt/cohere return json perfectly
 P2 --create playlist for users without them prompting using all the data they give us 
 P2 -- a chat feature to finetune playlist
 
+can we turn off autocorrect?
+
 ####
 
 spotify recommendations:
