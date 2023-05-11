@@ -8,6 +8,7 @@ import spotify
 import sys
 import twilio_lib
 import ttdb
+import signal
 
 class ERROR_CODES(Enum):
   NO_ERROR=0
@@ -18,6 +19,12 @@ class ERROR_CODES(Enum):
   ERROR_NO_GEN=5
   ERROR_COHERE_GEN=6
   ERROR_SPOTIFY_REFRESH=7
+
+
+def handler(signum, frame):
+  raise Exception("Timeout!")
+
+signal.signal(signal.SIGALRM, handler)
 
 def playlist_for_query(user_query: str,
     number_id: str,
@@ -68,8 +75,16 @@ def playlist_for_query(user_query: str,
     logger.info('cuser: %s', spot.current_user())
     if not spot.current_user():
       return ERROR_CODES.ERROR_NO_SPOTIFY_USER, None
+  
+  try:
+    signal.alarm(1.5)
+    spot.userCanSearch()
+  except Exception as e:
+    logger.info('Signal exception: %s', e)
+    spot.reinit()
+  finally:
+    signal.alarm(0)
 
-  spot.userCanSearch()
   genres = spot.get_genre_seeds()['genres']
   attributes = spot.get_attributes()
   msgs = chat.create_prompt(user_query, attrs=attributes, genres=genres)

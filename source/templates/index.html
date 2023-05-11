@@ -110,7 +110,6 @@
                                     // Submit the form
                                     // Note: you will need to replace 'yourForm' with the ID of your form
                                     placeholderInput.value = textarea.placeholder;
-                                    console.log('placeholder: ', placeholderInput.value);
                                     document.getElementById('spotify_post').submit();
 
                                     showSpinner();
@@ -128,6 +127,12 @@
                                     // var loadingText = "Loading..."; // Text to display while loading
 
                                     function showSpinner() {
+                                        const textarea = document.getElementById('form1');
+                                        const placeholderInput = document.getElementById('ta_placeholder');
+                                        placeholderInput.value = textarea.placeholder;
+
+                                        // document.getElementById('spotify_post').submit();
+
                                         // Show the spinner
                                         document.getElementById('spinner').style.display = 'inline-block';
 
