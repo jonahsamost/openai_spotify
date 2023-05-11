@@ -41,13 +41,17 @@ def spotify_landing():
 @app.route('/spotify', methods=["POST"])
 def spotify_login():
   query = request.form.get('query')
+  placeholder = request.form.get('ta_placeholder')
+  query = query or placeholder
 
   # if not current_user.is_authenticated:
   #   flash('Login!')
   #   session['spotify_query'] = query
   #   return redirect(url_for('login'))
 
+  logger.info('user placeholder: |%s|', placeholder)
   logger.info('user query: %s', query)
+
   if session.get('tokens', None) and session['tokens'].get('access_token', None):
     nquery = 'Make me a musical playlist that conforms to: ' + query
     err_code, playlist_url = logic.playlist_for_query(
@@ -66,6 +70,10 @@ def spotify_login():
         # return render_template('index.html')
         return redirect(url_for('landing'))
 
+  return spotify_make_response(query)
+
+
+def spotify_make_response(query):
   state = ''.join(
       secrets.choice(string.ascii_uppercase + string.digits) for _ in range(16)
       )
@@ -82,6 +90,7 @@ def spotify_login():
   session['spotify_query'] = query
   return res
 
+
 @app.route('/spotify_callback')
 def spotify_callback():
   error = request.args.get('error')
@@ -92,7 +101,7 @@ def spotify_callback():
   if state is None or state != stored_state:
     logger.info('Error message: %s', repr(error))
     logger.info('State mismatch: %s != %s', stored_state, state)
-    abort(400)
+    spotify_make_response(session['spotify_query'])
 
  # Request tokens with code we obtained
   payload = {
@@ -118,14 +127,14 @@ def spotify_callback():
     'refresh_token': res_data.get('refresh_token'),
   }
 
-  logger.info('The users query is: %s', session['spotify_query'])
+  logger.info('spotify callback The users query is: %s', session['spotify_query'])
 
   # err_code, playlist_url = logic.playlist_for_query(
   #   session['spotify_query'],
   #   number_id=str(current_user.get_id()),
   #   token=session['tokens'].get('access_token') 
   # )
-  return redirect(url_for('landing', query=session['spotify_query']))
+  return redirect(url_for('landing', query=session['spotify_query'], ready=True))
 
 
 @app.route('/login')

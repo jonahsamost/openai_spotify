@@ -10,6 +10,7 @@
         <meta name="author" content="" />
         <title>Thumb Tings</title>
         <link rel="icon" type="image/x-icon" href="{{ url_for('static', filename='assets/favicon.ico') }}" />
+        <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
         <!-- Font Awesome icons (free version)-->
         <script src="https://use.fontawesome.com/releases/v6.3.0/js/all.js" crossorigin="anonymous"></script>
         <!-- Google fonts-->
@@ -18,7 +19,7 @@
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
         <!-- Core theme CSS (includes Bootstrap)-->
         <link href="{{ url_for('static', filename='css/styles.css') }}" rel="stylesheet" />
-        <link href="{{ url_for('static', filename='css/search.css') }}" rel="stylesheet" />
+        <link href="{{ url_for('static', filename='css/search.css') }}" rel="stylesheet" type="text/css"/>
     </head>
     <body id="page-top">
         <!-- Navigation-->
@@ -51,6 +52,7 @@
 -->
         <!-- Masthead-->
         <header class="masthead">
+            <!--<img id="favicon" src="{{ url_for('static', filename='assets/favicon.ico') }}" alt="Website Favicon">-->
             <div class="container px-4 px-lg-5 d-flex h-100 align-items-center justify-content-center">
                 <div class="d-flex justify-content-center">
                     <div class="text-center">
@@ -79,12 +81,17 @@
                         </script>
 
                         <h1 class="mx-auto my-0 text-uppercase">ThumbTings</h1>
-                        <h2 class="text-white-50 mx-auto mt-2 mb-5">Your endless imagination in a playlist.</h2>
-                        <form action="/spotify" method="post">
+                        <h2 class="text-white-50 mx-auto mt-2">Your endless imagination.<br>Create playlists with ai prompts.</h2>
+                        <form id="spotify_post" action="/spotify" method="post">
                             <div class="form-outline">
-                              <textarea id="form1" name="query" rows=1 class="form-control custom-input" autocorrect="off" placeholder="Make me a playlist..." aria-label="Search" style="color: white;"></textarea>
+                              <textarea id="form1" name="query" rows=1 class="form-control custom-input" autocorrect="off"
+                                placeholder="Sunny day vibes with Shania Twain"
+                                aria-label="Search" style="color: white;"></textarea>
+                              <input type="hidden" id="ta_placeholder" name="ta_placeholder" value="">
+
                               <script>
                                 const textarea = document.getElementById('form1');
+                                const placeholderInput = document.getElementById('ta_placeholder');
 
                                 const autoGrow = () => {
                                   textarea.style.height = 'auto';
@@ -93,32 +100,30 @@
 
                                 textarea.addEventListener('input', autoGrow);
                                 autoGrow(); // Call autoGrow once to set the initial height
+
+                                textarea.addEventListener('keydown', function(e) {
+                                  // Check if the key pressed was the Enter key
+                                  if (e.key === 'Enter') {
+                                    // Prevent the default action (creating a newline)
+                                    e.preventDefault();
+                                
+                                    // Submit the form
+                                    // Note: you will need to replace 'yourForm' with the ID of your form
+                                    placeholderInput.value = textarea.placeholder;
+                                    console.log('placeholder: ', placeholderInput.value);
+                                    document.getElementById('spotify_post').submit();
+
+                                    showSpinner();
+                                  }
+                                });
                               </script>
-
-
-                              <script>
-                                // Get the current URL
-                                const currentUrl = new URL(window.location.href);
-
-                                // Check if the URL has the "search" parameter
-                                if (currentUrl.searchParams.has('query')) {
-                                  // Get the value of the "search" parameter
-                                  const searchValue = currentUrl.searchParams.get('query');
-
-                                  // Set the value of the input element with the ID "searchInput" to the value of the "search" parameter
-                                  document.getElementById('form1').value = searchValue;
-                                }
-                              </script>
-
                             </div>
                             <div class="button-container" style="position: relative; display: inline-block;">
 
                                 <!-- Change the anchor tag to a submit button -->
-                                <button type="submit" onclick="showSpinner()" class="btn btn-primary custom-button" id="inBrowserButton" disabled>Lets Make It!</button>
-
+                                <button type="submit" onclick="showSpinner()" class="btn btn-primary custom-button" id="inBrowserButton">Create Playlist</button>
                                 <br>
                                 <i class="fas fa-spinner fa-spin" id="spinner" style="position: absolute; top: 50%; left: 50%; margin-top: -8px; margin-left: -12px; display: none;"></i>
-
                                 <script>
                                     // var loadingText = "Loading..."; // Text to display while loading
 
@@ -130,22 +135,37 @@
                                         var button = document.getElementById('inBrowserButton');
                                         button.innerText = '';
                                     }
+
+                                    function showExamples() {
+                                      var examples = 
+                                      [
+                                            "A beach party with reggae and calypso music", "A cozy winter evening with a hot chocolate and soft rock ballads", "A festive Christmas gathering with classic holiday songs", "A garden party on a spring day with classical music", "A high-energy Zumba session with Latin pop music", "A journey through the countryside with country music", "A lazy afternoon nap with soft acoustic tunes", "A lively BBQ party with country music", "A night out in the city with hip-hop beats", "A nostalgic journey back to the 90s with pop hits", "A nostalgic road trip with 80s hits", "A peaceful yoga session with instrumental music", "A quiet evening of reading with ambient music", "A relaxing bubble bath with smooth jazz", "A romantic date night under the stars with John Legend", "A sunny day in the park with Fleetwood Mac", "A surprise birthday party with dance music from the 2000s", "A wine and cheese night with bossa nova", "An adrenaline-pumping mountain bike ride with rock music", "An early morning yoga session with meditative music", "An energetic workout with electronic dance music", "Cooking Italian dinner with Italian opera", "Cooking breakfast with upbeat jazz", "Dinner party with friends featuring French cuisine and French music", "Exploring a bustling city at night with jazz", "Exploring a vibrant street market with world music", "Hiking in the mountains with folk music", "Hosting a 70s themed disco party", "Meditating in a tranquil forest with ambient music", "Painting in an art studio with indie rock", "Reading a mystery novel on a rainy day with classical music", "Relaxing on a tropical beach with reggae tunes", "Road trip through the desert with The Eagles", "Running through the city at dawn with energetic pop music", "Sailing across the Mediterranean with Ed Sheeran", "Sitting by the campfire with indie folk music", "Stargazing on a clear night with Coldplay", "Studying in a quiet library with lofi beats", "Waking up on a Sunday morning with Norah Jones", "Watching the sunset on a rooftop with chill R&B",
+                                      ]
+                                      arr_idx = Math.floor(Math.random() * examples.length);
+                                      document.getElementById('form1').placeholder = examples[arr_idx];
+                                      if (document.getElementById('exampleButton').innerHTML == 'Show Example') {
+                                        document.getElementById('exampleButton').innerHTML = 'Another one'
+                                      }
+                                    }
                                 </script>
                             </div>
-                            {% if playlist_url %}
-                            <div class="button-container" style="margin-top: 10px;">
-                                <!-- Display the message and the button if the message variable is present -->
-                                <a class="btn btn-primary custom-button" href="{{ playlist_url }}">Here you go!</a>
-                                <script>
-                                    document.getElementById('spinner').style.display = 'none';
-                                    var button = document.getElementById('inBrowserButton');
-                                    var buttonText = "Lets Make It!"; // Save the original button text
-                                    button.innerText = buttonText;
-                                </script>
-                            </div>
-                            {% endif %}
                         </form>
-                        <a id="smsLink" class="btn btn-primary custom-button" style="margin-top: 10px;">Rather Text?</a>
+
+                        <button type="submit" onclick="showExamples()" class="btn btn-primary custom-button" id="exampleButton">Show Example</button>
+                        <br>
+                        {% if playlist_url %}
+                        <div class="button-container">
+                            <!-- Display the message and the button if the message variable is present -->
+                            <a class="btn btn-primary custom-button" href="{{ playlist_url }}">Here you go</a>
+                            <script>
+                                document.getElementById('spinner').style.display = 'none';
+                                var button = document.getElementById('inBrowserButton');
+                                var buttonText = "Create Playlist"; // Save the original button text
+                                button.innerText = buttonText;
+                            </script>
+                        </div>
+                        {% endif %}
+                        <a id="smsLink" class="btn btn-primary custom-button">Try Texting</a>
 
                         <script>
                             function updateSmsLink() {
@@ -180,10 +200,27 @@
                             }
                         
                             // Add an input event listener to the search input field
-                            searchInput.addEventListener('input', updateButtonState);
+                            // searchInput.addEventListener('input', updateButtonState);
                         
                             // Call the function to set the initial button state
-                            updateButtonState();
+                            // updateButtonState();
+                        </script>
+                        <script>
+                          // Get the current URL
+                          const currentUrl = new URL(window.location.href);
+
+                          // Check if the URL has the "search" parameter
+                          if (currentUrl.searchParams.has('query')) {
+                            // Get the value of the "search" parameter
+                            const searchValue = currentUrl.searchParams.get('query');
+
+                            // Set the value of the input element with the ID "searchInput" to the value of the "search" parameter
+                            document.getElementById('form1').value = searchValue;
+                            if (currentUrl.searchParams.has('ready')) {
+                              document.getElementById('spotify_post').submit();
+                              showSpinner();
+                            }
+                          }
                         </script>
 
                     </div>

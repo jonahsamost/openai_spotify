@@ -116,7 +116,10 @@ hr {
   opacity: 0.25;
 }
 
+/*
 h6, .h6, h5, .h5, h4, .h4, h3, .h3, h2, .h2, h1, .h1 {
+*/
+h6, .h6, h5, .h5, h4, .h4, h3, .h3, h1, .h1 {
   margin-top: 0;
   margin-bottom: 0.5rem;
   font-weight: 500;
@@ -134,6 +137,8 @@ h1, .h1 {
 
 h2, .h2 {
   font-size: calc(1.325rem + 0.9vw);
+  font-weight: 500;
+  line-height: 1.2;
 }
 @media (min-width: 1200px) {
   h2, .h2 {
@@ -2782,7 +2787,9 @@ textarea.form-control-lg {
   --bs-btn-border-width: 1px;
   --bs-btn-border-color: transparent;
   --bs-btn-border-radius: 0.375rem;
+  /*
   --bs-btn-hover-border-color: transparent;
+  */
   --bs-btn-box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.15), 0 1px 1px rgba(0, 0, 0, 0.075);
   --bs-btn-disabled-opacity: 0.65;
   --bs-btn-focus-box-shadow: 0 0 0 0.25rem rgba(var(--bs-btn-focus-shadow-rgb), .5);
@@ -2820,6 +2827,7 @@ textarea.form-control-lg {
     transition: none;
   }
 }
+/*
 .btn:hover {
   color: var(--bs-btn-hover-color);
   background-color: var(--bs-btn-hover-bg);
@@ -2830,6 +2838,8 @@ textarea.form-control-lg {
   background-color: var(--bs-btn-bg);
   border-color: var(--bs-btn-border-color);
 }
+*/
+/*
 .btn:focus-visible {
   color: var(--bs-btn-hover-color);
   background-color: var(--bs-btn-hover-bg);
@@ -2842,14 +2852,20 @@ textarea.form-control-lg {
   outline: 0;
   box-shadow: var(--bs-btn-focus-box-shadow);
 }
+*/
+/*
 .btn-check:checked + .btn, :not(.btn-check) + .btn:active, .btn:first-child:active, .btn.active, .btn.show {
   color: var(--bs-btn-active-color);
   background-color: var(--bs-btn-active-bg);
   border-color: var(--bs-btn-active-border-color);
 }
+*/
+/*
 .btn-check:checked + .btn:focus-visible, :not(.btn-check) + .btn:active:focus-visible, .btn:first-child:active:focus-visible, .btn.active:focus-visible, .btn.show:focus-visible {
   box-shadow: var(--bs-btn-focus-box-shadow);
 }
+*/
+
 .btn:disabled, .btn.disabled, fieldset:disabled .btn {
   color: var(--bs-btn-disabled-color);
   pointer-events: none;
@@ -2862,17 +2878,32 @@ textarea.form-control-lg {
   --bs-btn-color: #fff;
   --bs-btn-bg: rgba(100, 161, 157, 0.4); /* Adjust the alpha value (0.7) for the desired transparency */
   --bs-btn-border-color: #64a19d;
+
   --bs-btn-hover-color: #fff;
-  --bs-btn-hover-bg: rgba(100, 161, 157, 0.9); /* Slightly less transparent on hover */
-  --bs-btn-hover-border-color: #50817e;
+  --bs-btn-hover-bg: rgba(100, 161, 157, 0.4); 
+  --bs-btn-hover-border-color: #64a19d;
+
+  /*
   --bs-btn-focus-shadow-rgb: 123, 175, 172;
+  */
+  --bs-btn-focus-color: #fff;
+  --bs-btn-focus-bg: rgba(100, 161, 157, 0.4);
+  --bs-btn-focus-border-color: #64a19d;
+
   --bs-btn-active-color: #fff;
-  --bs-btn-active-bg: #50817e;
-  --bs-btn-active-border-color: #4b7976;
+  --bs-btn-active-bg: rgba(100, 161, 157, 0.4);
+  --bs-btn-active-border-color: #64a19d;
+  /*
   --bs-btn-active-shadow: inset 0 3px 5px rgba(0, 0, 0, 0.125);
+  */
+
   --bs-btn-disabled-color: #fff;
   --bs-btn-disabled-bg: rgba(100, 161, 157, 0.4); /* More transparent when disabled */
   --bs-btn-disabled-border-color: #64a19d;
+}
+.btn-primary:focus, .btn-primary:active {
+  outline: none;
+  box-shadow: none;
 }
 
 .btn-secondary {
@@ -11125,14 +11156,22 @@ body {
   background-size: cover;
 }
 .masthead h1, .masthead .h1 {
+  /*
   font-family: "Varela Round", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
+  */
+  font-family: 'Roboto', sans-serif;
   font-size: 2.5rem;
   line-height: 2.5rem;
   letter-spacing: 0.8rem;
+  /*
   background: linear-gradient(rgba(255, 255, 255, 0.9), rgba(255, 255, 255, 0));
   -webkit-text-fill-color: transparent;
   -webkit-background-clip: text;
           background-clip: text;
+  */
+  color: #e0e0e0; /* This will make your text white */
+  
+
 }
 .masthead h2, .masthead .h2 {
   max-width: 20rem;
@@ -11156,7 +11195,7 @@ body {
   }
   .masthead h2, .masthead .h2 {
     max-width: 30rem;
-    font-size: 1.25rem;
+    font-size: 1.1rem;
   }
 }
 

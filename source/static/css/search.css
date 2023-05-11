@@ -61,6 +61,7 @@ input[type="search"]::placeholder {
 
 
 .custom-button {
+  height: 44px;
   width: 200px;
   border: 1px solid;
   border-color: #172437;
@@ -70,19 +71,34 @@ input[type="search"]::placeholder {
   font-size: 14px;
   transition: all 0.3s;
   opacity: 0.8;
+  margin-bottom: .5rem;
+  --bs-btn-bg: rgba(120, 181, 177, 0.6); /* Made color lighter and increased opacity */
+  /*
+  --bs-btn-active-bg: #5ca9a5; /* Made color lighter */
+  */
+
 }
 
+/*
 .custom-button:hover {
   border-color: #a0aec0;
   color: #a0aec0;
-}
 
+  --bs-btn-color: #fff;
+  --bs-btn-bg: rgba(100, 161, 157, 0.4);
+  --bs-btn-border-color: #64a19d;
+
+}
+*/
+
+/*
 .custom-button:focus {
   z-index: 1;
-  border-color: #3182ce;
-  box-shadow: 0 0 0 1px #3182ce;
-  outline: none;
+  border-color: #64a19d;
+  box-shadow: 0 0 0 1px #64a19d;
+  background-color: transparent;
 }
+*/
 
 .custom-button:disabled {
   opacity: 0.4;
@@ -113,6 +129,8 @@ textarea.custom-input {
   resize: none;
   max-width: 100%;
   margin-right: 0;
+  margin-top: 1.5rem !important;
+  margin-bottom: 1.5rem !important;
   font-size: 14px;
   border-radius: 30px;
   border-color: #172437;
@@ -141,8 +159,8 @@ textarea.custom-input[aria-invalid="true"] {
 
 textarea.custom-input:focus {
   z-index: 1;
-  border-color: #3182ce;
-  box-shadow: 0 0 0 1px #3182ce;
+  border-color: #64a19d;
+  box-shadow: 0 0 0 1px #64a19d;
   background-color: transparent;
 }
 
@@ -150,3 +168,11 @@ textarea.custom-input::placeholder {
   color: rgba(255, 255, 255, 0.5);
 }
 
+
+#favicon {
+  position: absolute;
+  top: 20px;
+  left: 20px;
+  height: 25px; /* Adjust as needed */
+  width: 25px; /* Adjust as needed */
+}

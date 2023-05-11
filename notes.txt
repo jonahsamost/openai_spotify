@@ -1,7 +1,8 @@
 TODOs
 
 P0 -- ensure that texts were delivered
-P1 -- make chatgpt/cohere return json perfectly
+P1 -- starter prompts with a button, make me a playlist of things im currently liking...
+P2 -- make chatgpt/cohere return json perfectly
 P2 --create playlist for users without them prompting using all the data they give us 
 P2 -- a chat feature to finetune playlist
 
@@ -19,3 +20,42 @@ notes:
   mx server to gmail? 
     https://www.digitalocean.com/community/tutorials/how-to-set-up-gmail-with-your-domain-on-digitalocean
 
+
+-======
+
+
+      First off, this is SUCH a fantastic idea. Right away I got it and thought yep, these will exist for sure. I can’t wait to play with it more. I think right now, it very much looks like a template or the start of a website and with not knowing how far along it is, please take any comments with a grain of salt. There’s a few call outs I think could help and some are probably alreay being thought about!
+
+      1. Im curious about the forest theme of the design and brand, is this something on purpose and want keep? Or is this just images added as placement for now and are going to change? I was thinking something with more energy and within the music world would help (but sorry if these aren’t final images). Im not sure how familiar your friend is with royalty free imagery, but a good site they can use is unsplash.com (literally can use any photo on this site for free) and I think image subjects like the examples below would give it a much closer vibe to what the service is doing, both in the hero image and images below. What I will say is when selecting images, keeping them looking similar is also important when choosing images, but in the age of AI, I think showing the old tools of music making with that colorful glow in some of these could look dope or you could go more about the people listening and show people around the pool hanging, at parties, studying, etc, but being careful not to pick cheesy or corny images (people images always make this harder). Keeping in a black and white theme for the brand could also be rad, which I see a bit of today already.
+
+      https://unsplash.com/photos/3yt_0_PnR0A
+
+      https://unsplash.com/photos/QzpgqElvSiA
+
+      https://unsplash.com/photos/pTeZKi29EYE
+
+      https://unsplash.com/photos/NcdG9mK3PBY
+
+      https://unsplash.com/photos/c-NBiJrhwdM
+
+      https://unsplash.com/photos/Of16BBbSw20
+
+
+      2. For the main headline “THUMBTINGS”, its acting as a logo since there isn’t one on the page anywhere. I don’t think this is a bad thing and I like that you stuck to a strong word mark (maybe this is the logo) but if its not the logo, you might also want something in the top left corner? I love the little wire globe favicon used. The main headline / logo (Thumbtings) I think could be redone in a different font and personally would just get rid of the gradient. The font right now is a bit playful with its rounded corners and thin wide fit, and wonder if its right for you. Personally, I would stick to something more used in web/app world, a sans serif that’s still sleek and could still stay all caps and impactful.
+
+      3. The writing right now in the hero I think is too vague for me, “Your endless imagination in a playlist.” I think is strong, but there’s no instruction or expectations being set. I would add something to the end maybe, like “Your endless imagination in a playlist. Turn AI prompts into custom personalized playlists.” Or “Your endless imagination in a playlist. Create personalized playlists with ai prompts.” I just think this will help people realize right away what they should be doing.
+
+      4. I would move the “Make me a playlist…” outside of the prompt box, and then show examples of prompts in the bar. This could look like someone is typing and then deleting prompts in a loop OR a message that says something like “try writing your favorite artists, the mood, and some genres” (I’m sure you have a better way to say this with your knowledge) to encourage and give examples of what to prompt. This also means instead of the them having to type the “make me a playlist…” first (which its not clear right now if I do need to write that or not) they can just get right into the prompt. Also just noting you can’t enter, which made me think, is that on purpose for multi line prompts or something or just a bug? Haha
+
+      5. It could be cool to have a keyword dropdown when you click the prompt to help people get started. You could have some “starter” prompts they could just click and try to get the hang of it and see how it works, an example of what they could write (like a lot of e-commerce sites do with search dropdown). And maybe you can just click the dropdown and it has trending topics and genres you can just click a few to add and populate the prompt, almost like tags, but instead used as prompt keywords or in sentence form. If someone is a returning user or already signed into Spotify, how can it be like create me a playlist with artists you like: and show some of their favorite artists. I think a dropdown inspiration tool would be very helpful and powerful.
+
+      6. The text message thing I think is so smart and very interesting to me, I would explain it down below as a section and how that could be a way you use the service. Chat UI is like, the future of interacting and I think you are onto something with this, like just have a saved contact that makes playlists for you… this to me is an interesting brand idea, like your friend that’s really good with playlists that you would text, but its ai. There’s a theme here that I think you could run with an make almost like, your personal playlist partner or something. Its not just a way to input prompts, its a way to have your own personal DJ playlist friend. The first message after your first prompt I think should feel branded, and not like its a business saying hey were working on it, I would make it like “What up! Welcome to the world of custom playlists, Im here to curate for you whenever you need some new tunes, so come back whenever and lets chat music!!! Im working on your first playlist right now!“. This obviously would take some finesse to get the voice right, but could be really cool.
+
+      7. UI - this is a general thing, but I think your buttons can be larger height, right now they seem to thin and seem a bit off to me, I would make them at least 44 px height and a brighter color for contrast, this should help feel more legit on mobile too. I would also possibly change the CTA from “lets make it!” To something like “create playlist” or “create my playlist”. Leave punctuation out of button copy and try to stay away from sounding casual or conversational in it too, I would be direct and actionable. Even the text one, I would consider something like “text my prompt” or “try texting” or “send as text” but I don’t feel like “rather text?” Is bad… because the texting one is a tough one since its not a familiar action. I would also put these buttons side by side on desktop, personally. 
+
+DONE      8. I would use a different color than blue when selecting the prompt bar. Blue on the web is used a lot for accessibility like when you tab through options when you can’t use a mouse or when a link is clickable, for this reason, blue always looks rudimentary or “default” rather than branded, I would make the outline something like just pure white with a glow, or a branded color like a glowing pink or different tint of blue. If you do want to stick with blue, I would just use it in more places than that one place. 
+
+      9 - the footer looks very templatized, almost like default Wordpress, I would just change this to looking a bit more thought about and change how you show the contact info. Again this is like personal stuff, but things I see all the time from the more beginner or amateur design community, I don’t mean to nit pick though!
+
+      10 - the writing below the hero is well written to me. I like the tone and think its on the right path. Before commenting, I also want to mention I could see this living on a “how it works” page that could be linked in the top right like a normal website navigation, and leave the landing to JUST the prompt screen for impact (or below is more examples of playlists, prompts, top words, community stuff like show playlists being made but don’t show whose making them, etc. That being said, whether its on its own page or below the hero, I think what I would do is explain a bit of how it works - don’t give any secret sauce away or anything, but explain that it can create playlists instantly by like using your wording to string similar music together and match taste or something (need a family roadtrip playlist for a wedding with a love theme that’s going to make everyone happy with a lot of guitars? Cool we can do that, we can do anything). I feel like I need a bit of why would I use this more than just finding new music or vibing out. I think you can be a bit egotistic and explain that this thing can make the best playlists ever… and over and over, and that this is truly new - since playlists makers exist all over the place, even right within Spotify, so I need to know why this is better and possibly how its better. I think something about there being millions of songs and how ai can find music better than any real person is interesting and they can do it as much as you want by just changing and tweaking 1 word. I just think its being downplayed right now and it should speak more to how fucking awesome this thing is. If I was to design this, I would probably help them understand a bit of how the prompts can change things, like letting them know to try changing keywords or try saying things like this and have fun experimenting. I also think coming up with some sort of like cover art template would be rad, I love that when I did it, it named my playlist “poolside paradise” that is so rad and makes me think you could have all these generated “fake” playlist covers down below, all with like a little logo mark in the corner similar to what Spotify does like this https://dribbble.com/shots/11089837-Spotify-Playlist-Covers
+      )

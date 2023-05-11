@@ -201,6 +201,11 @@ class SpotifyRequest(object):
           ids.append(artist)
       return ids if ids else None
 
+    def userCanSearch(self):
+      """Makes sure the current user can search, else switch to default ThumbTings user."""
+      if not self._call('GET', 'search', q='artist:Drake' , type='artist', limit=1 , offset=0):
+        self.reinit()
+
     def get_recommendations(self, limit=50, seed_artists=[], seed_tracks=[], seed_genres=[], attributes={}):
       attrs = self.get_attributes()
       params = {}
@@ -223,7 +228,10 @@ class SpotifyRequest(object):
           if a == 'popularity':
             rem = re.match('[0-9]*', v)
             if rem:
-              val = int(rem.group())
+              try:
+                val = int(rem.group())
+              except:
+                continue
               if val < 0: val = 0
               if val > 100: val = 100
             else:
@@ -231,7 +239,10 @@ class SpotifyRequest(object):
           elif a == 'tempo':
             rem = re.match('[0-9]*', v)
             if rem:
-              val = int(rem.group())
+              try:
+                val = int(rem.group())
+              except:
+                continue
               if val < 50: val = 50
               if val > 260: val = 260
             else:
@@ -240,7 +251,10 @@ class SpotifyRequest(object):
             val = re.match('[0-9]*', v)
             if not val:
               continue
-            val = int(val.group()) / 100
+            try:
+              val = int(val.group()) / 100
+            except:
+              continue
             if val < 0: val = 0
             if val > 1: val = 1
           params[f'target_{a}'] = val

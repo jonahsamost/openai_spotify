@@ -69,6 +69,7 @@ def playlist_for_query(user_query: str,
     if not spot.current_user():
       return ERROR_CODES.ERROR_NO_SPOTIFY_USER, None
 
+  spot.userCanSearch()
   genres = spot.get_genre_seeds()['genres']
   attributes = spot.get_attributes()
   msgs = chat.create_prompt(user_query, attrs=attributes, genres=genres)

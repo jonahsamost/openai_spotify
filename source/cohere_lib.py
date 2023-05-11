@@ -3,7 +3,7 @@ import os
 from loglib import logger
 from typing import Dict, List, Union
 
-coapi = os.getenv('COHERE_TRIAL_API_KEY')
+coapi = os.getenv('COHERE_API_KEY')
 assert coapi, 'No Cohere api key'
 
 def get_assistant_message(
