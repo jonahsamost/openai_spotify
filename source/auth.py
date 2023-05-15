@@ -35,7 +35,7 @@ def load_user(user_id):
 
 @app.route('/spotify', methods=["GET"])
 def spotify_landing():
-  return redirect(url_for('landing'))
+  return render_template('index.html')
 
 
 @app.route('/spotify', methods=["POST"])
@@ -54,7 +54,8 @@ def spotify_login():
 
   if session.get('tokens', None) and session['tokens'].get('access_token', None):
     nquery = 'Make me a musical playlist that conforms to: ' + query
-    err_code, playlist_url = logic.playlist_for_query(
+    err_code = ERROR_CODES.NO_ERROR
+    err_code, playlist_info = logic.playlist_for_query(
       nquery,
       number_id=str(current_user.get_id()),
       access_token=session['tokens'].get('access_token'),
@@ -63,7 +64,8 @@ def spotify_login():
     if err_code != ERROR_CODES.ERROR_SPOTIFY_REFRESH:
       if err_code == ERROR_CODES.NO_ERROR:
         # flash("Success!")
-        return render_template('index.html', playlist_url=playlist_url)
+        playlist_url, playlist_cover = playlist_info
+        return render_template('index.html', playlist_url=playlist_url, playlist_cover=playlist_cover)
         # return redirect(url_for('landing', playlist_url=playlist_url))
       else:
         flash("Sorry, we couldn't understand your last message, try again!")

@@ -141,7 +141,9 @@ class SpotifyRequest(object):
       return self._call('GET', 'me/playlists', limit=limit, offset=offset)
 
     def get_genre_seeds(self):
-      return self._call('GET', "recommendations/available-genre-seeds")
+      seeds = ["acoustic", "afrobeat", "alt-rock", "alternative", "ambient", "anime", "black-metal", "bluegrass", "blues", "bossanova", "brazil", "breakbeat", "british", "cantopop", "chicago-house", "children", "chill", "classical", "club", "comedy", "country", "dance", "dancehall", "death-metal", "deep-house", "detroit-techno", "disco", "disney", "drum-and-bass", "dub", "dubstep", "edm", "electro", "electronic", "emo", "folk", "forro", "french", "funk", "garage", "german", "gospel", "goth", "grindcore", "groove", "grunge", "guitar", "happy", "hard-rock", "hardcore", "hardstyle", "heavy-metal", "hip-hop", "holidays", "honky-tonk", "house", "idm", "indian", "indie", "indie-pop", "industrial", "iranian", "j-dance", "j-idol", "j-pop", "j-rock", "jazz", "k-pop", "kids", "latin", "latino", "malay", "mandopop", "metal", "metal-misc", "metalcore", "minimal-techno", "movies", "mpb", "new-age", "new-release", "opera", "pagode", "party", "philippines-opm", "piano", "pop", "pop-film", "post-dubstep", "power-pop", "progressive-house", "psych-rock", "punk", "punk-rock", "r-n-b", "rainy-day", "reggae", "reggaeton", "road-trip", "rock", "rock-n-roll", "rockabilly", "romance", "sad", "salsa", "samba", "sertanejo", "show-tunes", "singer-songwriter", "ska", "sleep", "songwriter", "soul", "soundtracks", "spanish", "study", "summer", "swedish", "synth-pop", "tango", "techno", "trance", "trip-hop", "turkish", "work-out", "world-music"]
+      return {'genres': seeds}
+      # return self._call('GET', "recommendations/available-genre-seeds")
 
     def user_playlist_create(self, playlist_name, public=True, collaborative=False):
       payload = json.dumps({'name': playlist_name, 'public': public, 'collaborative': collaborative})
@@ -156,7 +158,7 @@ class SpotifyRequest(object):
     def _search_tracks(self, artist, track):
       """try to return track id for artist, track pair."""
       soft_ids = []
-      for i in range(2):
+      for i in range(1):
         result = self._call('GET', 'search', q=f'artist:{artist} track:{track}' , type='track', limit=50 , offset=i)
         for item in result['tracks']['items']:
           r_name = item['name'].lower()
@@ -182,7 +184,7 @@ class SpotifyRequest(object):
     def _search_artists(self, artist):
       """Try to search for single artist."""
       soft_ids = []  # does search term appear in result?
-      for i in range(2):
+      for i in range(1):
         result = self._call('GET', 'search', q=f'artist:{artist}' , type='artist', limit=50 , offset=i)
         for item in result['artists']['items']:
           name = item['name'].lower()
@@ -287,6 +289,11 @@ class SpotifyRequest(object):
     def playlist_by_id(self, playlist_id):
       return self._call('GET', f'playlists/{playlist_id}')
 
+    def playlist_cover_image(self, playlist_id):
+      images = self._call('GET', f'playlists/{playlist_id}/images')
+      image = [i['url'] for i in images if i['height'] == 640]
+      return image[0] if image else None
+
     def tracksForRecs(self, recs):
       return [track['uri'] for track in recs['tracks']]
 
@@ -310,18 +317,19 @@ class SpotifyRequest(object):
       
 
 
-def chatOutputToStructured(txt, attributes=[], number_id: str = ''):
+def chatOutputToStructured(txt, attributes=[], number_id: str = '', want: str = ''):
   attrs = {}
   genres = []
   artists = []
   songs = {}
+  playlist = []
 
   attributes = attributes + ['tempo']
   for val in txt.split('\n'):
     if not val:
       continue
     try:
-      att, vals = val.split(':')
+      att, vals = val.split(':', 1)
     except:
       continue
     if att.find('genres') != -1 and not genres:
@@ -330,6 +338,8 @@ def chatOutputToStructured(txt, attributes=[], number_id: str = ''):
       artists = vals
     elif att.find('songs') != -1 and not songs:
       songs = vals
+    elif att.find('playlist') != -1 and not playlist:
+      playlist = vals
     elif att.strip() in attributes and att.strip() not in attrs:
       attrs[att.strip()] = vals.strip()
 
@@ -340,6 +350,15 @@ def chatOutputToStructured(txt, attributes=[], number_id: str = ''):
   if artists:
     logger.info('%s: found artists: %s', number_id, artists)
     artists = [g.strip() for g in artists.split(',')] 
+
+  if playlist:
+    logger.info('%s: found playlist: %s', number_id, playlist)
+    plists = []
+    for plist in playlist.split(','):
+      p = re.findall('"(.*?)"', plist.strip())
+      if p:
+        plists.append(p[0])
+    playlist = plists
 
   song_artist_dic = {}
   if songs:
@@ -356,8 +375,20 @@ def chatOutputToStructured(txt, attributes=[], number_id: str = ''):
 
   if not isinstance(artists, list): artists = list(artists)
   if not isinstance(genres, list): genres = list(genres)
+  if not isinstance(playlist, list): playlist = list(playlist)
 
-  return genres, artists, songs, attrs
+  if want == 'artists':
+    return artists
+  elif want == 'songs':
+    return songs
+  elif want == 'genres': 
+    return genres
+  elif want == 'playlist':
+    return playlist
+  elif want == 'attrs':
+    return attrs
+
+  return genres, artists, songs, attrs, playlist
 
 
 def spotify_refresh_token(refresh_token: str = ''):

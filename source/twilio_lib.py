@@ -114,7 +114,6 @@ def _playlist_for_query(query, number_id):
   return err, url
 
 
-@app.route("/api/sms", methods=['GET', 'POST'])
 @app.route("/sms", methods=['GET', 'POST'])
 def incoming_sms():
   """Send a dynamic reply to an incoming text message"""
@@ -135,13 +134,6 @@ def incoming_sms():
   # add user to user db if we havent seen before
   if not db.get_user(number_id):
     logger.info('%s: Got new user!', number_id)
-    # TODO for testing in beta only!!!!! remove when ready
-    subd = 1 if db.get_user_count() < 100 else 0
-    if not subd:
-      out_msg = 'Not accepting any more users at this time...check back in a bit'
-      _send_twilio_msg(number_id, out_msg)
-      return ''
-
     newuser = ttdb.Users(phone_number=number_id,
       subscribed=subd, playlist_created=0, contact_sent=0)
     db.user_insert(newuser.dict())
@@ -158,12 +150,13 @@ def incoming_sms():
   # if a user likes/loves/etc a message, this regex tries to capture that
   if re.match("[A-Z][a-z]* [^\x00-\x7f]+.*[^\x00-\x7f]+", body):
     pass
+  body = 'Make me a musical playlist that conforms to: ' + body
   # intro message handled
-  elif body.find('Hello ThumbTings!') == 0:
+  if body.find('Hello ThumbTings!') == 0:
     user_request = 'make me a playlist with ambient audio. music that will help me focus. super instrumental. study music but upbeat. high bpm. Similar to The Chemical Brothers or Justice'
     rm = "\n\nWelcome to ThumbTings!!" + make_me
     _send_twilio_msg(number_id, rm)
-  elif utils.is_playlist_intent(body):
+  else:
 
     cur_user = db.get_user(number_id)
     if not cur_user:
@@ -185,21 +178,22 @@ def incoming_sms():
     unhandled_err = ''
 
     try:
-      _send_twilio_msg(number_id, "Thanks for your message! We're working on it...")
+      _send_twilio_msg(number_id, "Thanks for your message! We're cooking you up a hot new playlist...")
       err, url = _playlist_for_query(body, number_id)
     except Exception as e:
       logger.info('%s: Unhandled exception: %s', number_id, e)
       unhandled_err = e
       err = -1
     if err == ERROR_CODES.NO_ERROR:
-      out_msg = (
-        '\n\nCreated! Check the url!!\n'
-        # 'This playlist will self-destruct in 3 days, so signup to get unlimited, time-limitless playlists\n'
-        f'{url}'
-      )
+      pcount = db.playlists_per_user(number_id)
+      out_msg = ''
+      if pcount == 0:
+        out_msg += "\n\nWhat up! Welcome to the world of custom playlists, I'm here to curate for you whenever you need some new tunes, so come back whenever and lets chat music!!!"
+      out_msg += '\n\nCreated! Check the url!!\n'
+      out_msg += f'{url}'
       _send_twilio_msg(number_id, out_msg)
     else:
-      out_msg = "We're you wanting to create a playlist? Try again?"
+      out_msg = 'Hey, we didn\'t understand that last message! Try again! '
       _send_twilio_msg(number_id, out_msg)
       return ''
 
@@ -214,14 +208,6 @@ def incoming_sms():
     db.playlist_insert(plist.dict())
     if not cur_user.playlist_created:
       db.user_created_playlist(number_id)
-  # gets hit if a user likes/loves/blah the message
-  else:
-    msg = (
-      'Hey, we didn\'t understand that last message! Try again! '
-      'If you were wanting to create a playlist, try starting your request with '
-      '"make" or "create"!'
-    )
-    _send_twilio_msg(number_id, msg)
 
   return ''
 

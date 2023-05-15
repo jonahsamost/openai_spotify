@@ -167,6 +167,13 @@ class TTDB():
     )
     return self.execute(insert, *list(args.values()))
 
+  def playlists_per_user(self, number_id: str):
+    q = f'select count(*) from {self.playlist_table} where phone_number = %s;'
+    count = self.execute(q, (number_id))
+    if not count:
+      return 0
+    return count[0][0]
+
   def spotify_user_exists(self, username: str):
     """Checks if username already in db."""
     q = f'select * from {self.spotify_users} where username = %s'

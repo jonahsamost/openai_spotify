@@ -11,6 +11,7 @@
         <title>Thumb Tings</title>
         <link rel="icon" type="image/x-icon" href="{{ url_for('static', filename='assets/favicon.ico') }}" />
         <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+        <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
         <!-- Font Awesome icons (free version)-->
         <script src="https://use.fontawesome.com/releases/v6.3.0/js/all.js" crossorigin="anonymous"></script>
         <!-- Google fonts-->
@@ -20,37 +21,12 @@
         <!-- Core theme CSS (includes Bootstrap)-->
         <link href="{{ url_for('static', filename='css/styles.css') }}" rel="stylesheet" />
         <link href="{{ url_for('static', filename='css/search.css') }}" rel="stylesheet" type="text/css"/>
+        <!-- jQuery and Bootstrap JS -->
+        <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js"></script>
+        <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"></script>
     </head>
     <body id="page-top">
         <!-- Navigation-->
-<!--
-        <nav class="navbar navbar-expand-lg navbar-light fixed-top" id="mainNav" style="background-color: rgba(255, 255, 255, 0.0);">
-            <div class="container px-4 px-lg-5">
-                <a class="navbar-brand" href="#page-top"></a>
-                <button class="navbar-toggler navbar-toggler-right" type="button" data-bs-toggle="collapse" data-bs-target="#navbarResponsive" aria-controls="navbarResponsive" aria-expanded="false" aria-label="Toggle navigation">
-                <span class="bold-menu-text">Menu</span>
-                  <i class="fas fa-bars"></i>
-                </button>
-                <div class="collapse navbar-collapse" id="navbarResponsive">
-                    <ul class="navbar-nav ms-auto">
-                        {% if current_user.is_authenticated %}
-                        <div class="nav-item"><a class="nav-link">Hi, {{ current_user.name }}!</a></div>
-                        {% endif %}
-                        <li class="nav-item"><a class="nav-link" href="#about">About</a></li>
-                        {% if not current_user.is_authenticated %}
-                        <li class="nav-item"><a class="nav-link" href="/login">Login</a></li>
-                        {% endif %}
-                        <li class="nav-item"><a class="nav-link" href="#contact_us">Contact</a></li>
-                        {% if current_user.is_authenticated %}
-                        <div class="nav-item"><a class="nav-link" href="/logout">Logout</a></div>
-                        {% endif %}
-                    </ul>
-                </div>
-            </div>
-        </nav>
-
--->
-        <!-- Masthead-->
         <header class="masthead">
             <!--<img id="favicon" src="{{ url_for('static', filename='assets/favicon.ico') }}" alt="Website Favicon">-->
             <div class="container px-4 px-lg-5 d-flex h-100 align-items-center justify-content-center">
@@ -118,11 +94,9 @@
                               </script>
                             </div>
                             <div class="button-container" style="position: relative; display: inline-block;">
-
-                                <!-- Change the anchor tag to a submit button -->
                                 <button type="submit" onclick="showSpinner()" class="btn btn-primary custom-button" id="inBrowserButton">Create Playlist</button>
                                 <br>
-                                <i class="fas fa-spinner fa-spin" id="spinner" style="position: absolute; top: 50%; left: 50%; margin-top: -8px; margin-left: -12px; display: none;"></i>
+                                <i class="fas fa-spinner fa-spin" id="spinner" style="position: absolute; top: 50%; left: 50%; margin-top: -12px; margin-left: -12px; display: none;"></i>
                                 <script>
                                     // var loadingText = "Loading..."; // Text to display while loading
 
@@ -148,28 +122,54 @@
                                       ]
                                       arr_idx = Math.floor(Math.random() * examples.length);
                                       document.getElementById('form1').placeholder = examples[arr_idx];
-                                      if (document.getElementById('exampleButton').innerHTML == 'Show Example') {
-                                        document.getElementById('exampleButton').innerHTML = 'Another one'
+                                      if (document.getElementById('exampleButton').innerHTML == 'Feelin Lucky') {
+                                        document.getElementById('exampleButton').innerHTML = 'Feelin Luckier'
                                       }
                                     }
                                 </script>
                             </div>
                         </form>
 
-                        <button type="submit" onclick="showExamples()" class="btn btn-primary custom-button" id="exampleButton">Show Example</button>
+                        <button type="submit"
+                          onclick="showExamples();"
+                          class="btn btn-primary custom-button" 
+                          id="exampleButton">Feelin Lucky</button>
                         <br>
+
                         {% if playlist_url %}
-                        <div class="button-container">
-                            <!-- Display the message and the button if the message variable is present -->
-                            <a class="btn btn-primary custom-button" href="{{ playlist_url }}">Here you go</a>
-                            <script>
-                                document.getElementById('spinner').style.display = 'none';
-                                var button = document.getElementById('inBrowserButton');
-                                var buttonText = "Create Playlist"; // Save the original button text
-                                button.innerText = buttonText;
-                            </script>
+                        <!-- Modal -->
+                        <div class="modal fade" id="playlistModal" tabindex="-1" role="dialog" aria-labelledby="playlistModalLabel" aria-hidden="true">
+                          <div class="modal-dialog" role="document">
+                            <div class="modal-content">
+                              <div class="modal-header">
+                                <h5 class="modal-title" id="playlistModalLabel">Your playlist is ready!</h5>
+                                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                  <span aria-hidden="true">&times;</span>
+                                </button>
+                              </div>
+                              <div class="modal-body">
+                                {% if playlist_cover %}
+                                <img src="{{ playlist_cover }}" style="width:100%; height:auto; max-width:220; max-height:300px">
+                                <a class="btn btn-primary custom-button mt-2" role="button" href="{{ playlist_url }}">Here you go</a>
+                                {% else %}
+                                <a class="btn btn-primary custom-button" role="button" href="{{ playlist_url }}">Here you go</a>
+                                {% endif %}
+                              </div>
+                            </div>
+                          </div>
                         </div>
+                        
+                        <script>
+                            document.getElementById('spinner').style.display = 'none';
+                            var button = document.getElementById('inBrowserButton');
+                            var buttonText = "Create Playlist"; // Save the original button text
+                            button.innerText = buttonText;
+                            // Show the modal
+                            console.log('playlist url: ', "{{playlist_url}}");
+                            $('#playlistModal').modal('show');
+                        </script>
                         {% endif %}
+
                         <a id="smsLink" class="btn btn-primary custom-button">Try Texting</a>
 
                         <script>
@@ -222,8 +222,11 @@
                             // Set the value of the input element with the ID "searchInput" to the value of the "search" parameter
                             document.getElementById('form1').value = searchValue;
                             if (currentUrl.searchParams.has('ready')) {
-                              document.getElementById('spotify_post').submit();
+                              // window.onload = function(){
                               showSpinner();
+                              document.addEventListener("DOMContentLoaded", function(){
+                                document.getElementById('spotify_post').submit();
+                              });
                             }
                           }
                         </script>
@@ -237,7 +240,10 @@
             <div class="container px-4 px-lg-5">
                 <!-- Featured Project Row-->
                 <div class="row gx-0 mb-4 mb-lg-5 align-items-center">
-                    <div class="col-xl-8 col-lg-7"><img class="img-fluid mb-3 mb-lg-0" src="{{ url_for('static', filename='assets/img/bg-masthead.jpg') }}" alt="..." /></div>
+                    <div class="col-xl-8 col-lg-7"><img class="img-fluid mb-3 mb-lg-0" src="{{ url_for('static', filename='assets/img/festival5.jpg') }}" alt="..." /></div>
+                    <!--
+                    <div class="col-xl-8 col-lg-7"><img class="img-fluid mb-3 mb-lg-0" src="{{ url_for('static', filename='assets/img/lone_dj.jpg') }}" alt="..." /></div>
+                    -->
                     <div class="col-xl-4 col-lg-5">
                         <div class="featured-text text-center text-lg-left">
                             <h4>Vibe out</h4>
@@ -247,7 +253,7 @@
                 </div>
                 <!-- Project One Row-->
                 <div class="row gx-0 mb-5 mb-lg-0 justify-content-center">
-                    <div class="col-lg-6"><img class="img-fluid" src="{{ url_for('static', filename='assets/img/demo-image-01.jpg') }}" alt="..." /></div>
+                    <div class="col-lg-6"><img class="img-fluid" src="{{ url_for('static', filename='assets/img/festival.jpg') }}" alt="..." /></div>
                     <div class="col-lg-6">
                         <div class="bg-black text-center h-100 project">
                             <div class="d-flex h-100">
@@ -261,7 +267,7 @@
                 </div>
                 <!-- Project Two Row-->
                 <div class="row gx-0 justify-content-center">
-                    <div class="col-lg-6"><img class="img-fluid" src="{{ url_for('static', filename='assets/img/demo-image-02.jpg') }}" alt="..." /></div>
+                    <div class="col-lg-6"><img class="img-fluid" src="{{ url_for('static', filename='assets/img/festival3.jpg') }}" alt="..." /></div>
                     <div class="col-lg-6 order-lg-first">
                         <div class="bg-black text-center h-100 project">
                             <div class="d-flex h-100">
