@@ -165,8 +165,14 @@
                             var buttonText = "Create Playlist"; // Save the original button text
                             button.innerText = buttonText;
                             // Show the modal
-                            console.log('playlist url: ', "{{playlist_url}}");
                             $('#playlistModal').modal('show');
+
+                            $('#playlistModal').on('hidden.bs.modal', function (e) {
+                                // When the modal is hidden
+                                let url = window.location.href; 
+                                let newUrl = url.substring(0, url.lastIndexOf("/"));
+                                window.history.pushState({}, null, newUrl);
+                            });
                         </script>
                         {% endif %}
 
@@ -222,11 +228,11 @@
                             // Set the value of the input element with the ID "searchInput" to the value of the "search" parameter
                             document.getElementById('form1').value = searchValue;
                             if (currentUrl.searchParams.has('ready')) {
-                              // window.onload = function(){
                               showSpinner();
-                              document.addEventListener("DOMContentLoaded", function(){
+                              window.onload = function(){
+                              // document.addEventListener("DOMContentLoaded", function(){
                                 document.getElementById('spotify_post').submit();
-                              });
+                              };
                             }
                           }
                         </script>
@@ -247,7 +253,7 @@
                     <div class="col-xl-4 col-lg-5">
                         <div class="featured-text text-center text-lg-left">
                             <h4>Vibe out</h4>
-                            <p class="text-black-50 mb-0">Create any playlist you can dream up. Whether its your perfect gym playlist, coastal cruise soundtrack or night out pregame mix! Right to your Spotify.</p>
+                            <p class="text-black-50 mb-0">Create any playlist you can dream up. Whether its your perfect gym playlist, coastal cruise soundtrack or night out pregame mix! Right to Spotify.</p>
                         </div>
                     </div>
                 </div>

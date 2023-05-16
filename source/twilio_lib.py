@@ -43,7 +43,7 @@ db = ttdb.TTDB()
 ### LOGINC ###
 
 
-@app.route('/')
+@app.route('/', methods=['GET'])
 def landing():
   playlist_url = request.args.get('playlist_url', None)
   return render_template('index.html',
@@ -55,7 +55,6 @@ def landing():
 def background_jobs():
   # started from a cronjob because hack shit
   return ''
-# TODO
 
   logger.info('delete old playlists')
   q = f'select * from {db.playlist_table} where public = 1 and time_created < %s and deleted = 0'
@@ -150,64 +149,66 @@ def incoming_sms():
   # if a user likes/loves/etc a message, this regex tries to capture that
   if re.match("[A-Z][a-z]* [^\x00-\x7f]+.*[^\x00-\x7f]+", body):
     pass
+
+  hello_msg = 'Make me a playlist that '
+  if body.startswith(hello_msg):
+    body = body[len(hello_msg):]
   body = 'Make me a musical playlist that conforms to: ' + body
-  # intro message handled
-  if body.find('Hello ThumbTings!') == 0:
-    user_request = 'make me a playlist with ambient audio. music that will help me focus. super instrumental. study music but upbeat. high bpm. Similar to The Chemical Brothers or Justice'
-    rm = "\n\nWelcome to ThumbTings!!" + make_me
-    _send_twilio_msg(number_id, rm)
-  else:
 
-    cur_user = db.get_user(number_id)
-    if not cur_user:
-      logger.info('%s: Cur user is none', number_id)
-      # should never hit this case as user was just created
-      out_msg = 'hrm thats an error on our end... '
-      _send_twilio_msg(number_id, out_msg)
-      return ''
-    
-    cur_user = ttdb.Users(*cur_user[0])
-    if not cur_user.subscribed and cur_user.playlist_created:
-      out_msg = (
-        "You've already created a playlist! "
-        "Sign up to get unlimited, time-limitless playlists")
-      _send_twilio_msg(number_id, out_msg)
-      return ''
+  cur_user = db.get_user(number_id)
+  if not cur_user:
+    logger.info('%s: Cur user is none', number_id)
+    # should never hit this case as user was just created
+    out_msg = 'hrm thats an error on our end... '
+    _send_twilio_msg(number_id, out_msg)
+    return ''
+  cur_user = ttdb.Users(*cur_user[0])
 
-    url = ''
-    unhandled_err = ''
+  # if not cur_user.subscribed and cur_user.playlist_created:
+  #   out_msg = (
+  #     "You've already created a playlist! "
+  #     "Sign up to get unlimited, time-limitless playlists")
+  #   _send_twilio_msg(number_id, out_msg)
+  #   return ''
 
-    try:
-      _send_twilio_msg(number_id, "Thanks for your message! We're cooking you up a hot new playlist...")
-      err, url = _playlist_for_query(body, number_id)
-    except Exception as e:
-      logger.info('%s: Unhandled exception: %s', number_id, e)
-      unhandled_err = e
-      err = -1
-    if err == ERROR_CODES.NO_ERROR:
-      pcount = db.playlists_per_user(number_id)
-      out_msg = ''
-      if pcount == 0:
-        out_msg += "\n\nWhat up! Welcome to the world of custom playlists, I'm here to curate for you whenever you need some new tunes, so come back whenever and lets chat music!!!"
-      out_msg += '\n\nCreated! Check the url!!\n'
-      out_msg += f'{url}'
+  url = ''
+  unhandled_err = ''
+
+  try:
+    pcount = db.playlists_per_user(number_id)
+    if pcount == 0:
+      out_msg = ("What up! Welcome to the world of custom playlists, "
+      "I'm here to curate for you whenever you need some new tunes, so come back whenever and lets chat music!!! "
+      "For now, we're cooking you up a hot new playlist, it'll just take a few more seconds...")
       _send_twilio_msg(number_id, out_msg)
     else:
-      out_msg = 'Hey, we didn\'t understand that last message! Try again! '
-      _send_twilio_msg(number_id, out_msg)
-      return ''
+      _send_twilio_msg(number_id, "Thanks for your message! We're cooking you up a hot new playlist...")
+    err, url = _playlist_for_query(body, number_id)
+  except Exception as e:
+    logger.info('%s: Unhandled exception: %s', number_id, e)
+    unhandled_err = e
+    err = -1
+  if err == ERROR_CODES.NO_ERROR:
+    out_msg = ''
+    # out_msg += '\n\nCreated! Check the url!!\n'
+    out_msg += f'{url}'
+    _send_twilio_msg(number_id, out_msg)
+  else:
+    out_msg = 'Hey, we didn\'t understand that last message! Try again! '
+    _send_twilio_msg(number_id, out_msg)
+    return ''
 
-    url_id = url.split('/')[-1] if err == ERROR_CODES.NO_ERROR else ''
-    plist = ttdb.Playlist(
-      phone_number=number_id, playlist_id=url_id, prompt=body,
-      success=int(err == ERROR_CODES.NO_ERROR),
-      time_created=dt.now(), 
-      public=1, # TODO change when subscription is ready
-      error_message=unhandled_err,
-      deleted=0)
-    db.playlist_insert(plist.dict())
-    if not cur_user.playlist_created:
-      db.user_created_playlist(number_id)
+  url_id = url.split('/')[-1] if err == ERROR_CODES.NO_ERROR else ''
+  plist = ttdb.Playlist(
+    phone_number=number_id, playlist_id=url_id, prompt=body,
+    success=int(err == ERROR_CODES.NO_ERROR),
+    time_created=dt.now(), 
+    public=1, # TODO change when subscription is ready
+    error_message=unhandled_err,
+    deleted=0)
+  db.playlist_insert(plist.dict())
+  if not cur_user.playlist_created:
+    db.user_created_playlist(number_id)
 
   return ''
 

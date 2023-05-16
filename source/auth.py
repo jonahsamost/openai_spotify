@@ -35,7 +35,7 @@ def load_user(user_id):
 
 @app.route('/spotify', methods=["GET"])
 def spotify_landing():
-  return render_template('index.html')
+  return redirect(url_for('landing'))
 
 
 @app.route('/spotify', methods=["POST"])

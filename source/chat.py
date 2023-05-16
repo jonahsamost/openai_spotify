@@ -166,15 +166,15 @@ def create_artist_prompt(user_req):
   'user: Make me a musical playlist that conforms to: country\n'
   'artists:\n\n'
   f'user: {user_req}\n'
-  'artists: ')
+  'artists:')
   return prompt
   
 
 def create_song_prompt(user_req):
   prompt = (
   'You are an expert at following exact directions.\n'
-  'You never do anything more than what is stated.\n'
-  'You will return the specified songs from the given query in a comma-separated format.\n\n\n'
+  'Only return songs if a song is requested. Do not make up a song. That is very important!\n'
+  'You will return only the specified songs from the given query in a comma-separated format.\n\n\n'
   'user: Make me a musical playlist that conforms to: ambient electronic music with some latin flare and sprinkle in some country with a little energy and not very loud but with pop. Similar to Daft Punk or Jon Hopkins or drone logic by Daniel Avery or body by loud luxury\n'
   'songs: "drone logic" by Daniel Avery, "body" by loud luxury\n\n'
   'user: Make me a musical playlist that conforms to: with electronic with heavy synth. not lyrical. not popular. high energy. Like Deadmau5\'s the veldt\n'
@@ -182,7 +182,7 @@ def create_song_prompt(user_req):
   'user: Make me a musical playlist that conforms to: country\n'
   'songs:\n\n'
   f'user: {user_req}\n'
-  'songs: ')
+  'songs:')
   return prompt
 
 
@@ -199,15 +199,14 @@ def create_genre_prompt(user_req, genres):
   'user: Make me a musical playlist that conforms to: country\n'
   'genres: country, bluegrass\n\n'
   f'user: {user_req}\n'
-  'genres: ')
+  'genres:')
   return prompt
 
 
 def create_playlist_prompt(user_req):
   prompt = (
   'You are an expert at following exact directions.\n'
-  'You never do anything more than what is stated.\n'
-  'You will return ten short word playlist names that are unique, creative, catchy, and related to the given query in a comma-separated format.\n\n\n'
+  'You will return five playlist names that are funny and creative and 6 words in length and related to the given query in a comma-separated format.\n\n\n'
   'user: Make me a musical playlist that conforms to: ambient electronic music with some latin flare and sprinkle in some country with a little energy and not very loud but with pop. Similar to Daft Punk or Jon Hopkins or drone logic by Daniel Avery or body by loud luxury\n'
   'playlist: "A Spicy Country Drive Through the Matrix", "Cosmic Country Rhythms on Low Volume", "Whispering Synths, Swaying Cacti", "Galactic Ranchero Beats", "Sublime Salsa Whispers"\n\n'
   'user: Make me a musical playlist that conforms to: with electronic with heavy synth. not lyrical. not popular. high energy. Like Deadmau5\'s the veldt\n'
@@ -215,7 +214,7 @@ def create_playlist_prompt(user_req):
   'user: Make me a musical playlist that conforms to: country\n'
   'playlist: "Boot-Scootin\' Melodies", "Twangy Trails and Whiskey Tales", "Yeehaw Jamboree", "Saddle Up and Sing Along", "Hay Bales and Heartache"\n\n'
   f'user: {user_req}\n'
-  'playlist: ')
+  'playlist:')
   return prompt
 
 

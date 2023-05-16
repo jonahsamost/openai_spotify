@@ -378,7 +378,7 @@ def chatOutputToStructured(txt, attributes=[], number_id: str = '', want: str = 
   if not isinstance(playlist, list): playlist = list(playlist)
 
   if want == 'artists':
-    return artists
+    return list(set(artists))
   elif want == 'songs':
     return songs
   elif want == 'genres': 
@@ -388,7 +388,7 @@ def chatOutputToStructured(txt, attributes=[], number_id: str = '', want: str = 
   elif want == 'attrs':
     return attrs
 
-  return genres, artists, songs, attrs, playlist
+  return list(set(genres)), list(set(artists)), songs, attrs, playlist
 
 
 def spotify_refresh_token(refresh_token: str = ''):

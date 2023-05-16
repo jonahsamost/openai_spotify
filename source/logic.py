@@ -38,11 +38,11 @@ def get_playlist_attributes_cohere(user_query, attrs=None, genres=None):
   playlist_prompt = chat.create_playlist_prompt(user_query)
   attr_prompt = chat.create_attribute_prompt(user_query, attrs)
   prompts = {
-    'artists': {'prompt': artist_prompt, 'temp': .75},
-    'songs': {'prompt': song_prompt, 'temp': .75},
-    'genres': {'prompt': genre_prompt, 'temp': .75},
-    'playlist': {'prompt': playlist_prompt, 'temp': .5},
-    'attrs': {'prompt': attr_prompt, 'temp': .75, 'model': 'command'},
+    'artists': {'prompt': artist_prompt, 'temp': .7, 'model': 'command'},
+    'songs': {'prompt': song_prompt, 'temp': .6, 'model': 'command'},
+    'genres': {'prompt': genre_prompt, 'temp': .8, 'model': 'command'},
+    'playlist': {'prompt': playlist_prompt, 'temp': .8, 'model': 'command'},
+    'attrs': {'prompt': attr_prompt, 'temp': .8, 'model': 'command'},
     }
   
   q = queue.Queue()
@@ -79,7 +79,7 @@ def get_playlist_attributes_cohere(user_query, attrs=None, genres=None):
     return ERROR_CODES.ERROR_NO_GEN, None
 
   for k, v in outputs.items():
-    print('structured cohere: %s: %s', k, v)
+    logger.info('structured cohere: %s: %s', k, v)
 
   return outputs
 
