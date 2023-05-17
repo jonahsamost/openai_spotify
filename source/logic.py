@@ -14,6 +14,7 @@ import secrets
 import threading
 import queue
 import time
+import random
 
 class ERROR_CODES(Enum):
   NO_ERROR=0
@@ -37,12 +38,15 @@ def get_playlist_attributes_cohere(user_query, attrs=None, genres=None):
   genre_prompt = chat.create_genre_prompt(user_query, genres)
   playlist_prompt = chat.create_playlist_prompt(user_query)
   attr_prompt = chat.create_attribute_prompt(user_query, attrs)
+  tempo_prompt = chat.create_tempo_prompt(user_query)
   prompts = {
-    'artists': {'prompt': artist_prompt, 'temp': .7, 'model': 'command'},
-    'songs': {'prompt': song_prompt, 'temp': .6, 'model': 'command'},
-    'genres': {'prompt': genre_prompt, 'temp': .8, 'model': 'command'},
-    'playlist': {'prompt': playlist_prompt, 'temp': .8, 'model': 'command'},
-    'attrs': {'prompt': attr_prompt, 'temp': .8, 'model': 'command'},
+    'artists': {'prompt': artist_prompt, 'temp': .3, 'model': 'command', 'p': .9},
+    'songs': {'prompt': song_prompt, 'temp': .3, 'model': 'command', 'p': .9},
+    'genres': {'prompt': genre_prompt, 'temp': .6, 'model': 'command', 'p': .9},
+    'playlist': {'prompt': playlist_prompt, 'temp': .8,
+          'model': 'command', 'p': .9, 'tokens': 100},
+    'attrs': {'prompt': attr_prompt, 'temp': .5, 'model': 'command', 'p': .9},
+    'tempo': {'prompt': tempo_prompt, 'temp': .5, 'model': 'command', 'p': .9},
     }
   
   q = queue.Queue()
@@ -50,16 +54,23 @@ def get_playlist_attributes_cohere(user_query, attrs=None, genres=None):
     prompt = vals['prompt']
     temp = vals['temp']
     model = vals.get('model', 'command-light')
+    p = vals.get('p', .75)
+    tokens = vals.get('tokens', 75)
     text = cohere_lib.get_assistant_message_with_str(prompt,
-      max_tokens=80, temperature=temp, model=model)
+      max_tokens=tokens, temperature=temp, model=model, p=p)
     if text is None:
       text = ''
     text = text.strip()
     logger.info('cohere single: %s: %s', ptype, text)
+    if ptype == 'attrs':
+      att = attrs
+    elif ptype == 'tempo':
+      att = ['tempo']
+    else:
+      att = []
     want = spotify.chatOutputToStructured(f'{ptype}: {text}',
-            attributes=attrs, want=ptype)
+            attributes=att, want=ptype)
     q.put({ptype: want})
-
 
   threads = []
   for k, v in prompts.items():
@@ -79,7 +90,7 @@ def get_playlist_attributes_cohere(user_query, attrs=None, genres=None):
     return ERROR_CODES.ERROR_NO_GEN, None
 
   for k, v in outputs.items():
-    logger.info('structured cohere: %s: %s', k, v)
+    logger.info('Cohere output: %s: %s', k, v)
 
   return outputs
 
@@ -178,10 +189,39 @@ def get_playlist_name(user_query, using_cohere, number_id):
   names = [name for name in chat.parse_playlist_name(pnames_list)]
   return secrets.choice(names)
 
+
+def find_playlist_name(s_playlist_names: list):
+  """Find a playlist name that is not used and add to db."""
+  pname = None
+  for name in s_playlist_names:
+    if not twilio_lib.db.playlist_name_exists(name):
+      pname = name
+      # insert name into db
+      spot_plist = ttdb.SpotifyPlaylistNames(name=pname)
+      twilio_lib.db.playlist_name_insert(spot_plist.dict())
+      return pname
+ 
+  playlist_url = None
+  playlist_id = None
+  if pname is None:
+    for name in s_playlist_names:
+      for i in range(10):
+        cur_name = ''.join(random.choice((str.upper, str.lower))(c) for c in name)
+        if not twilio_lib.db.playlist_name_exists(cur_name):
+          pname = cur_name
+          # insert name into db
+          spot_plist = ttdb.SpotifyPlaylistNames(name=pname)
+          twilio_lib.db.playlist_name_insert(spot_plist.dict())
+          return pname
+
+  return None
+
+
 def playlist_for_query(user_query: str,
     number_id: str,
     access_token: str = '',
-    refresh_token: str = ''
+    refresh_token: str = '',
+    include_all_playlist_info: bool = False
     ):
   """Responds with tuple of (Error, Message)."""
   spot = spotify.SpotifyRequest()
@@ -241,16 +281,17 @@ def playlist_for_query(user_query: str,
   s_artists = chat_vals['artists']
   s_songs = chat_vals['songs']
   s_attrs = chat_vals['attrs']
+  s_attrs.update(chat_vals['tempo'])
   s_playlist_names = chat_vals['playlist']
 
-  s_artists = s_artists + list(s_songs.values())
-  logger.info('%s: before genres: %s', number_id, s_genres)
+  s_artists = list(set(s_artists + list(s_songs.values())))
+  logger.info('%s: Guessed genres: %s', number_id, s_genres)
   s_genres = [g for g in s_genres if g in genres]
-  logger.info('%s: after genres: %s', number_id, s_genres)
-  logger.info('%s: artists: %s', number_id, s_artists)
-  logger.info('%s: songs: %s', number_id, s_songs)
-  logger.info('%s: attributes: %s', number_id, s_attrs)
-  logger.info('%s: playlist name: %s', number_id, s_playlist_names)
+  logger.info('%s: Spotify genres: %s', number_id, s_genres)
+  logger.info('%s: Spotify artists: %s', number_id, s_artists)
+  logger.info('%s: Spotify songs: %s', number_id, s_songs)
+  logger.info('%s: Spotify attributes: %s', number_id, s_attrs)
+  logger.info('%s: Spotify playlist name: %s', number_id, s_playlist_names)
   logger.info('using cohere: %s', using_cohere)
 
   s_artists, s_songs = get_spotify_song_artists(spot, s_artists, s_songs)
@@ -266,23 +307,24 @@ def playlist_for_query(user_query: str,
   track_uris = spot.tracksForRecs(recs)
   logger.info('%s: track uris length: %s', number_id, len(track_uris))
 
-  if s_playlist_names:
-    pname = secrets.choice(s_playlist_names)
-  else:
-    pname = get_playlist_name(user_query, using_cohere, number_id)
+  pname = find_playlist_name(s_playlist_names)
+  if pname is None:
+    logger.info('%s: playlist name is none', number_id)
+    return ERROR_CODES.ERROR_NO_PLAYLIST_CREATE, None
 
-  # get playlist info
   playlist_id, playlist_url = spot.create_playlist(pname=pname)
+
   if playlist_id is None:
     logger.info('%s: playlist id is none', number_id)
     return ERROR_CODES.ERROR_NO_PLAYLIST_CREATE, None
   spot.playlist_write_tracks(playlist_id, track_uris)
 
   logger.info('%s: playlist url: %s', number_id, playlist_url)
-  if not access_token:
+  if access_token or include_all_playlist_info:
+    playlist_image = spot.playlist_cover_image(playlist_id)
+    return ERROR_CODES.NO_ERROR, (playlist_url, playlist_image)
+  else:
     return ERROR_CODES.NO_ERROR, playlist_url
 
-  playlist_image = spot.playlist_cover_image(playlist_id)
-  return ERROR_CODES.NO_ERROR, (playlist_url, playlist_image)
 
 

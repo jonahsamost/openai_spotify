@@ -228,7 +228,7 @@ class SpotifyRequest(object):
       for a, v in attributes.items():
         if a in attrs:
           if a == 'popularity':
-            rem = re.match('[0-9]*', v)
+            rem = re.search('\d+', v)
             if rem:
               try:
                 val = int(rem.group())
@@ -239,7 +239,7 @@ class SpotifyRequest(object):
             else:
               continue
           elif a == 'tempo':
-            rem = re.match('[0-9]*', v)
+            rem = re.match('\d+', v)
             if rem:
               try:
                 val = int(rem.group())
@@ -250,7 +250,7 @@ class SpotifyRequest(object):
             else:
               continue
           else:
-            val = re.match('[0-9]*', v)
+            val = re.match('\d+', v)
             if not val:
               continue
             try:
@@ -275,7 +275,14 @@ class SpotifyRequest(object):
 
     def does_playlist_exist(self, pname: str):
       playlist_info = self.find_playlist_with_name(pname)
-      return playlist_info.get('id', None)
+      if playlist_info:
+        pid = playlist_info.get('id', None)
+        url = playlist_info.get('external_urls', None)
+        if url:
+          url = url.get('spotify', None)
+          if url:
+            return pid, url
+        return None
 
     def create_playlist(self, pname: str):
       result = self.user_playlist_create(pname)
@@ -323,8 +330,7 @@ def chatOutputToStructured(txt, attributes=[], number_id: str = '', want: str = 
   artists = []
   songs = {}
   playlist = []
-
-  attributes = attributes + ['tempo']
+  # attributes = attributes + ['tempo']
   for val in txt.split('\n'):
     if not val:
       continue
@@ -386,6 +392,8 @@ def chatOutputToStructured(txt, attributes=[], number_id: str = '', want: str = 
   elif want == 'playlist':
     return playlist
   elif want == 'attrs':
+    return attrs
+  elif want == 'tempo':
     return attrs
 
   return list(set(genres)), list(set(artists)), songs, attrs, playlist

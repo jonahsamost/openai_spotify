@@ -56,6 +56,10 @@ class SpotifyCreds(BaseDC):
   access_token: str
   refresh_token: str
 
+@dataclass 
+class SpotifyPlaylistNames(BaseDC):
+  name: str
+
 
 class TTDB():
   def __init__(self):
@@ -70,6 +74,7 @@ class TTDB():
     self.user_table = 'users'
     self.user_messages = 'user_messages'
     self.spotify_users = 'spotify_users'
+    self.playlist_names = 'playlist_names'
     self._create_tables()
 
   def close(self):
@@ -143,6 +148,13 @@ class TTDB():
     )
     self.execute(users)
 
+    pnames = (
+      f'create table if not exists {self.playlist_names} ('
+        'name varchar primary key'
+      ');'
+    )
+    self.execute(pnames)
+
   def spotify_insert(self, args: dict):
     return self._table_insert(args, self.spotify_users)
 
@@ -158,6 +170,9 @@ class TTDB():
   def subscriber_insert(self, args: dict):
     return self._table_insert(args, self.subscriber_table)
 
+  def playlist_name_insert(self, args: dict):
+    return self._table_insert(args, self.playlist_names)
+
   def _table_insert(self, args: dict, table_name: str):
     keys = ', '.join(list(args.keys()))
     values_ph = ', '.join(['%s'] * len(args))
@@ -166,6 +181,10 @@ class TTDB():
       f'values ({values_ph})'
     )
     return self.execute(insert, *list(args.values()))
+
+  def playlist_name_exists(self, name: str):
+    q = f'select * from {self.playlist_names} where name = %s'
+    return self.execute(q, (name))
 
   def playlists_per_user(self, number_id: str):
     q = f'select count(*) from {self.playlist_table} where phone_number = %s;'

@@ -158,7 +158,8 @@ def create_artist_prompt(user_req):
   prompt = (
   'You are an expert at following exact directions.\n'
   'You never do anything more than what is stated.\n'
-  'You will return the specified artists from the given query in a comma-separated format.\n\n\n'
+  'You will return the specified artists from the given query in a comma-separated format.\n'
+  'What follows are examples where the "user" says something and what comes after is how you should respond.\n\n\n'
   'user: Make me a musical playlist that conforms to: ambient electronic music with some latin flare and sprinkle in some country with a little energy and not very loud but with pop. Similar to Daft Punk or Jon Hopkins or drone logic by Daniel Avery or body by loud luxury\n'
   'artists: Daft Punk, Jon Hopkings, Daniel Avery, Loud Luxury\n\n'
   'user: Make me a musical playlist that conforms to: with electronic with heavy synth. not lyrical. not popular. high energy. Like Deadmau5\'s the veldt\n'
@@ -174,7 +175,8 @@ def create_song_prompt(user_req):
   prompt = (
   'You are an expert at following exact directions.\n'
   'Only return songs if a song is requested. Do not make up a song. That is very important!\n'
-  'You will return only the specified songs from the given query in a comma-separated format.\n\n\n'
+  'You will return only the specified songs from the given query in a comma-separated format.\n'
+  'What follows are examples where the "user" says something and what comes after is how you should respond.\n\n\n'
   'user: Make me a musical playlist that conforms to: ambient electronic music with some latin flare and sprinkle in some country with a little energy and not very loud but with pop. Similar to Daft Punk or Jon Hopkins or drone logic by Daniel Avery or body by loud luxury\n'
   'songs: "drone logic" by Daniel Avery, "body" by loud luxury\n\n'
   'user: Make me a musical playlist that conforms to: with electronic with heavy synth. not lyrical. not popular. high energy. Like Deadmau5\'s the veldt\n'
@@ -191,7 +193,8 @@ def create_genre_prompt(user_req, genres):
   'You are an expert at following exact directions.\n'
   'You never do anything more than what is stated.\n'
   'You will return the specified genres from the given query in a comma-separated format.\n'
-  f'Each genre can be in the set: {genres}\n\n\n'
+  f'Each genre can be in the set: {genres}.\n'
+  'What follows are examples where the "user" says something and what comes after is how you should respond.\n\n\n'
   'user: Make me a musical playlist that conforms to: ambient electronic music with some latin flare and sprinkle in some country with a little energy and not very loud but with pop. Similar to Daft Punk or Jon Hopkins or drone logic by Daniel Avery or body by loud luxury\n'
   'genres: ambient, electronic, latin, country\n\n'
   'user: Make me a musical playlist that conforms to: with electronic with heavy synth. not lyrical. not popular. high energy. Like Deadmau5\'s the veldt\n'
@@ -206,7 +209,8 @@ def create_genre_prompt(user_req, genres):
 def create_playlist_prompt(user_req):
   prompt = (
   'You are an expert at following exact directions.\n'
-  'You will return five playlist names that are funny and creative and 6 words in length and related to the given query in a comma-separated format.\n\n\n'
+  'You will return ten playlist names that are funny and creative and 6 words in length and related to the given query in a comma-separated format.\n'
+  'What follows are examples where the "user" says something and what comes after is how you should respond.\n\n\n'
   'user: Make me a musical playlist that conforms to: ambient electronic music with some latin flare and sprinkle in some country with a little energy and not very loud but with pop. Similar to Daft Punk or Jon Hopkins or drone logic by Daniel Avery or body by loud luxury\n'
   'playlist: "A Spicy Country Drive Through the Matrix", "Cosmic Country Rhythms on Low Volume", "Whispering Synths, Swaying Cacti", "Galactic Ranchero Beats", "Sublime Salsa Whispers"\n\n'
   'user: Make me a musical playlist that conforms to: with electronic with heavy synth. not lyrical. not popular. high energy. Like Deadmau5\'s the veldt\n'
@@ -222,8 +226,9 @@ def create_attribute_prompt(user_req, attrs):
   prompt = (
   'You are an expert at following exact directions.\n'
   'You never do anything more than what is stated.\n'
-  'You will return a number between 0 and 100 for each attribute. Only the "tempo" attribute may range between 50 and 250.\n'
-  'Each attribute can be in the set: {attrs}\n\n\n'
+  'You will return a number between 0 and 100 for each attribute.\n'
+  'Each attribute can be in the set: {attrs}.\n'
+  'What follows are examples where the "user" says something and what comes after is how you should respond.\n\n\n'
   'user: Make me a musical playlist that conforms to: ambient electronic music with some latin flare and sprinkle in some country with a little energy and not very loud but with pop. Similar to Daft Punk or Jon Hopkins or drone logic by Daniel Avery or body by loud luxury\n'
   'acousticness: 25\n'
   'danceability: 75\n'
@@ -233,7 +238,6 @@ def create_attribute_prompt(user_req, attrs):
   'loudness: 40\n'
   'popularity: 80\n'
   'speechiness: 40\n'
-  'tempo: 120\n\n'
   'user: Make me a musical playlist that conforms to: with electronic with heavy synth. not lyrical. not popular. high energy. Like Deadmau5\'s the veldt\n'
   'acousticness: 10\n'
   'danceability: 75\n'
@@ -243,6 +247,20 @@ def create_attribute_prompt(user_req, attrs):
   'loudness: 40\n'
   'popularity: 80\n'
   'speechiness: 0\n'
-  'tempo: 140\n\n'
+  f'user: {user_req}\n')
+  return prompt
+
+
+def create_tempo_prompt(user_req):
+  prompt = (
+  'You are an expert at following exact directions.\n'
+  'You never do anything more than what is stated.\n'
+  'You will only give a "tempo" value between 50 and 250, where 50 is very slow, chill and relax and 250 is very upbeat and high energy\n'
+  'If you are unsure, simply give a value of 150.\n'
+  'What follows are examples where the "user" says something and what comes after is how you should respond.\n\n'
+  'user: Make me a musical playlist that conforms to: ambient electronic music with some latin flare and sprinkle in some country with a little energy and not very loud but with pop. Similar to Daft Punk or Jon Hopkins or drone logic by Daniel Avery or body by loud luxury\n'
+  'tempo: 100\n\n'
+  'user: Make me a musical playlist that conforms to: with electronic with heavy synth. not lyrical. not popular. high energy. Like Deadmau5\'s the veldt\n'
+  'tempo: 230\n\n'
   f'user: {user_req}\n')
   return prompt

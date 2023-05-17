@@ -52,6 +52,22 @@ def spotify_login():
   logger.info('user placeholder: |%s|', placeholder)
   logger.info('user query: %s', query)
 
+
+  nquery = 'Make me a musical playlist that conforms to: ' + query
+  err_code, playlist_info = logic.playlist_for_query(
+                                          nquery,
+                                          number_id=str(current_user.get_id()),
+                                          include_all_playlist_info=True)
+
+  if err_code == ERROR_CODES.NO_ERROR:
+    # flash("Success!")
+    playlist_url, playlist_cover = playlist_info
+    return render_template('index.html', playlist_url=playlist_url, playlist_cover=playlist_cover)
+  else:
+    flash("Sorry, we couldn't understand your last message, try again!")
+    return redirect(url_for('landing'))
+
+  _ = ''' 
   if session.get('tokens', None) and session['tokens'].get('access_token', None):
     nquery = 'Make me a musical playlist that conforms to: ' + query
     err_code = ERROR_CODES.NO_ERROR
@@ -73,6 +89,7 @@ def spotify_login():
         return redirect(url_for('landing'))
 
   return spotify_make_response(query)
+  '''
 
 
 def spotify_make_response(query):

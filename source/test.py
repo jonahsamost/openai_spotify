@@ -67,3 +67,20 @@ js = ttdb.SpotifyCreds(*susers[0])
 spot = spotify.SpotifyRequest()
 spot.token = js.access_token
 
+spot.reinit()
+
+names = []
+i = 0
+while True:
+  plists = spot.current_user_playlists(offset=50*i, limit=50)
+  cur_names = [item['name'] for item in plists['items']]
+  print(cur_names)
+  print(i)
+  names += cur_names
+  if len(cur_names) != 50:
+    break
+  i += 1
+
+for name in names:
+  pname = ttdb.SpotifyPlaylistNames(name=name)
+  tt.playlist_name_insert(pname.dict())

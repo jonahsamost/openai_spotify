@@ -11,16 +11,20 @@ def get_assistant_message(
   temperature: int = .9,
   max_tokens=80,
   model: str = "command-light",
+  p: float = .75,
+  k: int = 0,
   number_id: str = '') -> str:
 
   prompt = [m['content'] for m in messages]
   prompt = '\n'.join(prompt)
   return get_assistant_message_with_str(
-    prompt,
-    temperature,
-    max_tokens,
-    model,
-    number_id
+    prompt=prompt,
+    temperature=temperature,
+    max_tokens=max_tokens,
+    model=model,
+    p=p,
+    k=k,
+    number_id=number_id
   )
 
 def get_assistant_message_with_str(
@@ -28,6 +32,8 @@ def get_assistant_message_with_str(
   temperature: int = .5,
   max_tokens=80,
   model: str = "command",
+  p: float = .75,
+  k: int = 0, 
   number_id: str = '') -> str:
 
   co = cohere.Client(coapi)
@@ -36,6 +42,7 @@ def get_assistant_message_with_str(
     model=model,
     temperature=temperature,
     max_tokens=max_tokens,
+    p=p,
     k=0) 
   try:
     return response[0].text
