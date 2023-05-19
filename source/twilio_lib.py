@@ -153,7 +153,7 @@ def incoming_sms():
   hello_msg = 'Make me a playlist that '
   if body.startswith(hello_msg):
     body = body[len(hello_msg):]
-  body = 'Make me a musical playlist that conforms to: ' + body
+  # body = 'Make me a musical playlist that conforms to: ' + body
 
   cur_user = db.get_user(number_id)
   if not cur_user:

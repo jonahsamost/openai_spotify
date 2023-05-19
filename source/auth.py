@@ -53,9 +53,9 @@ def spotify_login():
   logger.info('user query: %s', query)
 
 
-  nquery = 'Make me a musical playlist that conforms to: ' + query
+  # nquery = 'Make me a musical playlist that conforms to: ' + query
   err_code, playlist_info = logic.playlist_for_query(
-                                          nquery,
+                                          query,
                                           number_id=str(current_user.get_id()),
                                           include_all_playlist_info=True)
 

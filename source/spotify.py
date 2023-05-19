@@ -145,8 +145,9 @@ class SpotifyRequest(object):
       return {'genres': seeds}
       # return self._call('GET', "recommendations/available-genre-seeds")
 
-    def user_playlist_create(self, playlist_name, public=True, collaborative=False):
-      payload = json.dumps({'name': playlist_name, 'public': public, 'collaborative': collaborative})
+    def user_playlist_create(self, playlist_name, public=True, collaborative=False, description=''):
+      payload = json.dumps({'name': playlist_name, 'public': public,
+          'collaborative': collaborative, 'description': description})
       return self._call('POST', f'users/{self._username}/playlists', payload=payload)
 
     def get_attributes(self):
@@ -284,8 +285,8 @@ class SpotifyRequest(object):
             return pid, url
         return None
 
-    def create_playlist(self, pname: str):
-      result = self.user_playlist_create(pname)
+    def create_playlist(self, pname: str, description: str =''):
+      result = self.user_playlist_create(pname, description=description)
       if result is None:
         return None, None
       return result['id'], result['external_urls']['spotify']

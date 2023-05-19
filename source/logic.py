@@ -224,6 +224,8 @@ def playlist_for_query(user_query: str,
     include_all_playlist_info: bool = False
     ):
   """Responds with tuple of (Error, Message)."""
+  og_query = user_query
+  user_query = 'Make me a musical playlist that conforms to: ' + user_query
   spot = spotify.SpotifyRequest()
   if access_token:
     using_thumb_tings = False
@@ -312,7 +314,7 @@ def playlist_for_query(user_query: str,
     logger.info('%s: playlist name is none', number_id)
     return ERROR_CODES.ERROR_NO_PLAYLIST_CREATE, None
 
-  playlist_id, playlist_url = spot.create_playlist(pname=pname)
+  playlist_id, playlist_url = spot.create_playlist(pname=pname, description=og_query)
 
   if playlist_id is None:
     logger.info('%s: playlist id is none', number_id)

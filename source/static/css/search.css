@@ -285,3 +285,17 @@ textarea.custom-input::placeholder {
 .modal-content {
   background-color: rgba(255, 255, 255, 0.75); /* white with 50% opacity */
 }
+
+.cursor-blink::after {
+  content: '|';
+  visibility: hidden;
+}
+
+.cursor-blink {
+  caret-color: transparent;
+}
+
+.cursor-blink::after {
+  visibility: visible;
+}
+

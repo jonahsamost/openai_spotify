@@ -91,7 +91,17 @@
                                     showSpinner();
                                   }
                                 });
+
+                                window.addEventListener('DOMContentLoaded', function() {
+                                  var textarea = document.getElementById('form1');
+                                  textarea.focus();
+                                  setInterval(function() {
+                                    textarea.classList.toggle('cursor-blink');
+                                  }, 500);
+                                });
+
                               </script>
+
                             </div>
                             <div class="button-container" style="position: relative; display: inline-block;">
                                 <button type="submit" onclick="showSpinner()" class="btn btn-primary custom-button" id="inBrowserButton">Create Playlist</button>
