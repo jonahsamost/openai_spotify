@@ -56,8 +56,13 @@ def get_playlist_attributes_cohere(user_query, attrs=None, genres=None):
     model = vals.get('model', 'command-light')
     p = vals.get('p', .75)
     tokens = vals.get('tokens', 75)
-    text = cohere_lib.get_assistant_message_with_str(prompt,
-      max_tokens=tokens, temperature=temp, model=model, p=p)
+    try:
+      text = cohere_lib.get_assistant_message_with_str(prompt,
+        max_tokens=tokens, temperature=temp, model=model, p=p)
+    except Exception as e:
+      logger.info('cohere thread exception: %s', e)
+      return
+
     if text is None:
       text = ''
     text = text.strip()
@@ -82,7 +87,14 @@ def get_playlist_attributes_cohere(user_query, attrs=None, genres=None):
   for t in threads:
     t.join()
 
-  outputs = {}
+  outputs = {
+    'artists': [],
+    'songs': {},
+    'genres': [],
+    'playlist': [],
+    'attrs': {},
+    'tempo': {},
+  }
   while not q.empty():
     outputs.update(q.get())
 
@@ -269,6 +281,7 @@ def playlist_for_query(user_query: str,
 
   genres = spot.get_genre_seeds()['genres']
   attributes = spot.get_attributes()
+  # use cohere by default
   if 1: # TODO (cohere sucks)
     using_cohere = True
     chat_vals = get_playlist_attributes_cohere(user_query, attrs=attributes, genres=genres) 
