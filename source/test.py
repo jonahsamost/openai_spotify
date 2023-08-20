@@ -30,14 +30,6 @@ tt = TTDB()
 #   media_url=[VCF_HOSTING_PATH])
 
 
-
-# name = 'Irish-Sudanese Stereotypes-Based Aggression Motivation Mix'
-# pinfo = spot.find_playlist_with_name(name)
-# pid = pinfo['id']
-# headers = spot.auth
-# 
-# spot.playlist_delete_tracks(pid)
-
 # headers['Content-Type'] = 'application/json'
 # url = spot._base + f'playlists/{pid}'
 # response = spot._session.request('GET', url, headers=headers)
